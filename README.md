@@ -20,7 +20,6 @@ EduBridge is an innovative web-based learning platform designed to provide inclu
 - **Frontend**: React.js
 - **Backend**: Node.js with Express.js
 - **Database**: MongoDB
-- **Machine Learning**: TensorFlow for personalized learning recommendations
 - **Authentication**: JWT-based authentication system
 - **Mobile Support**: Responsive design for various devices
 
