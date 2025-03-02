@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # Frontend
+  client:
+    build: ./client
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - api-gateway
+    environment:
+      - NODE_ENV=development
+
+  # API Gateway
+  api-gateway:
+    build: ./server/api-gateway
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server/api-gateway:/app
+      - /app/node_modules
+    depends_on:
+      - user-service
+      - course-service
+      - content-service
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+
+  # User Service
+  user-service:
+    build: ./server/user-service
+    ports:
+      - "4001:4001"
+    volumes:
+      - ./server/user-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+      - kafka
+    environment:
+      - NODE_ENV=development
+      - PORT=4001
+      - MONGO_URI=mongodb://mongo:27017/edubridge_users
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+
+  # Course Service
+  course-service:
+    build: ./server/course-service
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./server/course-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+      - kafka
+    environment:
+      - NODE_ENV=development
+      - PORT=4002
+      - MONGO_URI=mongodb://mongo:27017/edubridge_courses
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+
+  # Content Service
+  content-service:
+    build: ./server/content-service
+    ports:
+      - "4003:4003"
+    volumes:
+      - ./server/content-service:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+      - kafka
+    environment:
+      - NODE_ENV=development
+      - PORT=4003
+      - MONGO_URI=mongodb://mongo:27017/edubridge_content
+      - REDIS_URL=redis://redis:6379
+      - KAFKA_BROKERS=kafka:9092
+
+  # Database Services
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # Kafka for Event-Driven Architecture
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  # Elasticsearch for Search Service
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+volumes:
+  mongodb_data:
+  redis_data:
+  elasticsearch_data:
