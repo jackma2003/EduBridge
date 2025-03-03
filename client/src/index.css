@@ -1,48 +1,27 @@
-/* client/src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom base styles (these will be applied after Tailwind's base styles) */
 @layer base {
   body {
-    @apply text-gray-800 bg-gray-50;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply font-sans text-gray-800 bg-secondary;
   }
-
-  :focus {
-    @apply outline-none ring-2 ring-primary ring-opacity-50;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold;
   }
 }
 
-/* Custom component styles */
 @layer components {
   .btn {
-    @apply px-4 py-2 font-semibold rounded-md transition duration-300;
+    @apply px-4 py-2 rounded-md transition-colors duration-200;
   }
-  
   .btn-primary {
-    @apply btn bg-primary text-white hover:bg-primary-dark hover:-translate-y-0.5;
+    @apply bg-primary text-white hover:bg-primary-dark;
   }
-  
   .btn-secondary {
-    @apply btn bg-transparent border-2 border-white text-white hover:bg-white/10 hover:-translate-y-0.5;
+    @apply bg-secondary-dark text-gray-700 hover:bg-gray-300;
   }
-  
-  .btn-outlined {
-    @apply btn bg-transparent border-2 border-primary text-primary hover:bg-primary/10;
-  }
-  
-  .card {
-    @apply bg-white rounded-lg shadow-md p-6 transition duration-300 hover:-translate-y-1 hover:shadow-lg;
-  }
-  
-  .section {
-    @apply py-20 px-4 md:px-6;
-  }
-  
-  .container {
-    @apply max-w-7xl mx-auto;
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 }
