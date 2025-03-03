@@ -36,6 +36,13 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'teacher', 'admin'],
     default: 'student'
   },
+  isVerified: {
+    type: Boolean,
+    default: function() {
+      // Students are automatically verified, teachers and admins need to be verified
+      return this.role === 'student';
+    }
+  },
   preferences: {
     language: {
       type: String,
@@ -59,6 +66,9 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  lastLogin: {
+    type: Date
   }
 });
 

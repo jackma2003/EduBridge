@@ -5,6 +5,7 @@ import RegisterPage from './components/RegisterPage';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import TeacherRegistrationPage from './components/TeacherRegistrationPage';
+import PendingApprovalPage from './components/PendingApprovalPage';
 import './index.css';
 
 // Simple PrivateRoute component to handle authentication
@@ -21,6 +22,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/register/teacher" element={<TeacherRegistrationPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route 
             path="/dashboard" 
