@@ -71,6 +71,9 @@ const Footer = () => {
             <a href="#" className="hover:text-white">Accessibility</a>
             <a href="#" className="hover:text-white">Cookie Policy</a>
           </div>
+          <div className="text-xs text-gray-500 mt-4">
+            <a href="/setup-admin" className="hover:underline">Admin Setup</a>
+          </div>
         </div>
       </div>
     </footer>

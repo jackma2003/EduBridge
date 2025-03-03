@@ -62,8 +62,14 @@ const LoginPage = () => {
       // Save user data
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
-      // Redirect to dashboard
-      navigate('/dashboard');
+      // Check user role and redirect accordingly
+      if (response.data.user.role === 'admin') {
+        // Redirect admin users to admin dashboard
+        navigate('/admin');
+      } else {
+        // Redirect regular users to student/teacher dashboard
+        navigate('/dashboard');
+      }
       
     } catch (err) {
       setError(
@@ -77,7 +83,7 @@ const LoginPage = () => {
 
   return (
     <section className="py-12 bg-gray-50">
-      <div className="container-custom max-w-md mx-auto">
+      <div className="container mx-auto px-4 max-w-md">
         <div className="bg-white rounded-lg shadow p-8">
           <h1 className="text-2xl font-bold mb-6 text-center">Log in to EduBridge</h1>
           
