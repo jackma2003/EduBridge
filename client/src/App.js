@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
-import RegisterPage from './components/RegisterPage.jsx';
+import RegisterPage from './components/RegisterPage';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
+import TeacherRegistrationPage from './components/TeacherRegistrationPage';
 import './index.css';
 
 // Simple PrivateRoute component to handle authentication
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register/teacher" element={<TeacherRegistrationPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route 
             path="/dashboard" 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -9,12 +9,13 @@ const RegisterPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    name: ''
+    name: '',
+    role: 'student' // Default role is student
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { username, email, password, confirmPassword, name } = formData;
+  const { username, email, password, confirmPassword, name, role } = formData;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -43,7 +44,8 @@ const RegisterPage = () => {
         username,
         email,
         password,
-        name
+        name,
+        role // Include role in request
       });
       
       // Save token in localStorage
@@ -67,7 +69,7 @@ const RegisterPage = () => {
 
   return (
     <section className="py-12 bg-gray-50">
-      <div className="container-custom max-w-md mx-auto">
+      <div className="container mx-auto px-4 max-w-md">
         <div className="bg-white rounded-lg shadow p-8">
           <h1 className="text-2xl font-bold mb-6 text-center">Create Your EduBridge Account</h1>
           
@@ -159,14 +161,26 @@ const RegisterPage = () => {
               />
             </div>
             
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
                 type="submit"
                 disabled={loading}
               >
-                {loading ? 'Creating Account...' : 'Create Account'}
+                {loading ? 'Creating Account...' : 'Create Student Account'}
               </button>
+            </div>
+            
+            <div className="text-center mb-4">
+              <p className="text-gray-600">
+                Want to teach on EduBridge?{' '}
+                <Link
+                  to="/register/teacher"
+                  className="text-blue-600 hover:text-blue-800 font-semibold"
+                >
+                  Register as a Teacher
+                </Link>
+              </p>
             </div>
             
             <div className="text-center mt-6">
