@@ -1,13 +1,36 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import RegisterPage from './components/RegisterPage.jsx';
+import LoginPage from './components/LoginPage';
+import DashboardPage from './components/DashboardPage';
 import './index.css';
-import Layout from './components/layout/Layout';
-import HomePage from './components/home/HomePage';
+
+// Simple PrivateRoute component to handle authentication
+const PrivateRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('token') !== null;
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 function App() {
   return (
-    <Layout>
-      <HomePage />
-    </Layout>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <PrivateRoute>
+                <DashboardPage />
+              </PrivateRoute>
+            } 
+          />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
