@@ -1,147 +1,135 @@
+// models/Course.js - Course model for EduBridge
+
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Please add a course title'],
+    required: [true, 'Course title is required'],
     trim: true,
-    maxlength: [100, 'Title cannot be more than 100 characters']
-  },
-  slug: {
-    type: String,
-    unique: true
+    maxlength: [100, 'Course title cannot exceed 100 characters']
   },
   description: {
     type: String,
-    required: [true, 'Please add a description'],
-    maxlength: [2000, 'Description cannot be more than 2000 characters']
-  },
-  category: {
-    type: String,
-    required: [true, 'Please select a category'],
-    enum: [
-      'Technology',
-      'Business',
-      'Science',
-      'Arts',
-      'Humanities',
-      'Mathematics',
-      'Language',
-      'Health',
-      'Other'
-    ]
-  },
-  subcategory: {
-    type: String
-  },
-  level: {
-    type: String,
-    required: [true, 'Please add a difficulty level'],
-    enum: ['Beginner', 'Intermediate', 'Advanced']
+    required: [true, 'Course description is required']
   },
   instructor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: [true, 'Course must have an instructor']
   },
   coverImage: {
     type: String,
     default: 'default-course.jpg'
   },
+  languages: [{
+    type: String,
+    enum: ['en', 'es', 'fr'],
+    default: ['en']
+  }],
+  level: {
+    type: String,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    required: [true, 'Course level is required']
+  },
+  topics: [{
+    type: String,
+    required: [true, 'At least one topic is required']
+  }],
   modules: [{
     title: {
       type: String,
-      required: true
+      required: [true, 'Module title is required']
     },
-    description: String,
-    order: Number,
-    lessons: [{
+    description: {
+      type: String
+    },
+    content: [{
+      type: {
+        type: String,
+        enum: ['video', 'document', 'quiz', 'assignment'],
+        required: [true, 'Content type is required']
+      },
       title: {
         type: String,
-        required: true
+        required: [true, 'Content title is required']
       },
-      description: String,
-      content: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Content'
+      description: {
+        type: String
       },
-      duration: Number, // in minutes
-      order: Number
+      url: {
+        type: String
+      },
+      duration: {
+        type: Number // in minutes
+      },
+      isDownloadable: {
+        type: Boolean,
+        default: false
+      }
     }]
   }],
-  prerequisites: [{
-    type: String
-  }],
-  objectives: [{
-    type: String
-  }],
-  duration: { // total duration in minutes
-    type: Number
+  isPublished: {
+    type: Boolean,
+    default: false
   },
-  languages: [{
-    type: String,
-    default: 'English'
+  enrolledStudents: [{
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    enrolledAt: {
+      type: Date,
+      default: Date.now
+    },
+    progress: {
+      type: Number,
+      default: 0 // percentage
+    }
   }],
-  rating: {
-    type: Number,
-    min: [1, 'Rating must be at least 1'],
-    max: [5, 'Rating cannot be more than 5']
-  },
-  reviews: [{
-    user: {
+  ratings: [{
+    student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
     rating: {
       type: Number,
       min: 1,
-      max: 5
+      max: 5,
+      required: [true, 'Rating value is required']
     },
-    comment: String,
-    date: {
+    review: {
+      type: String
+    },
+    createdAt: {
       type: Date,
       default: Date.now
     }
   }],
-  enrollments: {
-    type: Number,
-    default: 0
+  createdAt: {
+    type: Date,
+    default: Date.now
   },
-  tags: [{
-    type: String
-  }],
-  isPublished: {
-    type: Boolean,
-    default: false
-  },
-  publishedAt: {
-    type: Date
-  },
-  lastUpdated: {
+  updatedAt: {
     type: Date,
     default: Date.now
   }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
 });
 
-// Generate slug from title
+// Calculate average rating
+courseSchema.virtual('averageRating').get(function() {
+  if (this.ratings.length === 0) return 0;
+  
+  const sum = this.ratings.reduce((total, rating) => total + rating.rating, 0);
+  return (sum / this.ratings.length).toFixed(1);
+});
+
+// Update the updatedAt field on save
 courseSchema.pre('save', function(next) {
-  if (this.isNew || this.isModified('title')) {
-    this.slug = this.title
-      .toLowerCase()
-      .replace(/[^\w\s]/gi, '')
-      .replace(/\s+/g, '-');
-  }
-  
-  if (this.isModified('isPublished') && this.isPublished && !this.publishedAt) {
-    this.publishedAt = Date.now();
-  }
-  
-  this.lastUpdated = Date.now();
+  this.updatedAt = Date.now();
   next();
 });
 
-module.exports = mongoose.model('Course', courseSchema);
+const Course = mongoose.model('Course', courseSchema);
+
+module.exports = Course;
