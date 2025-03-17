@@ -1,0 +1,22 @@
+{
+    "name": "edubridge",
+    "version": "1.0.0",
+    "description": "EduBridge full stack application",
+    "scripts": {
+      "start": "cd server && npm start",
+      "heroku-postbuild": "cd server && npm install",
+      "dev:server": "cd server && npm run dev",
+      "dev:client": "cd client && npm start",
+      "build": "cd client && npm run build"
+    },
+    "engines": {
+      "node": "18.x"
+    },
+    "cacheDirectories": [
+      "server/node_modules",
+      "client/node_modules"
+    ],
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
