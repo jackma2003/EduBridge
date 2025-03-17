@@ -45,68 +45,85 @@ const TestimonialsSlider = () => {
   };
 
   return (
-    <section id="testimonials" className="py-20 bg-blue-50">
+    <section id="testimonials" className="py-24 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-block bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-medium mb-4">
+            Success Stories
+          </div>
+          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+            What Our Learners Say
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
             Join thousands of learners who have transformed their education with EduBridge.
           </p>
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-lg p-8 relative">
-            <div className="absolute -top-5 left-10 text-blue-600 text-6xl opacity-20">"</div>
+          {/* Testimonial card */}
+          <div className="bg-white rounded-3xl shadow-xl p-10 relative border border-gray-100">
+            <div className="absolute -top-4 -left-3 text-blue-600 text-8xl opacity-10">"</div>
+            <div className="absolute -bottom-10 -right-3 text-blue-600 text-8xl opacity-10">"</div>
 
-            <div className="text-lg text-gray-700 mb-6 relative z-10">
+            <div className="text-xl text-gray-700 mb-8 italic">
               {testimonials[activeIndex].content}
             </div>
             
             <div className="flex items-center">
-              <img 
-                src={testimonials[activeIndex].avatar} 
-                alt={testimonials[activeIndex].name}
-                className="w-12 h-12 rounded-full mr-4 object-cover"
-              />
-              <div>
-                <h4 className="font-semibold">{testimonials[activeIndex].name}</h4>
-                <p className="text-gray-500 text-sm">{testimonials[activeIndex].role}</p>
+              <div className="relative">
+                <img 
+                  src={testimonials[activeIndex].avatar} 
+                  alt={testimonials[activeIndex].name}
+                  className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"
+                />
+                <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-1 rounded-full">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h4 className="font-bold text-blue-900">{testimonials[activeIndex].name}</h4>
+                <p className="text-blue-600 text-sm">{testimonials[activeIndex].role}</p>
               </div>
             </div>
+            
+            {/* Navigation arrows */}
+            <button 
+              onClick={prevTestimonial}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-blue-50 z-20 transition-all hover:scale-110"
+              aria-label="Previous testimonial"
+            >
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <button 
+              onClick={nextTestimonial}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-white rounded-full p-3 shadow-lg hover:bg-blue-50 z-20 transition-all hover:scale-110"
+              aria-label="Next testimonial"
+            >
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
 
-          <div className="flex justify-center mt-8 space-x-2">
+          {/* Pagination dots */}
+          <div className="flex justify-center mt-10 space-x-3">
             {testimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`w-3 h-3 rounded-full transition-colors duration-200 ${
-                  index === activeIndex ? 'bg-blue-600' : 'bg-gray-300'
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === activeIndex 
+                    ? 'bg-blue-600 w-8' 
+                    : 'bg-gray-300 hover:bg-blue-300'
                 }`}
                 aria-label={`Go to testimonial ${index + 1}`}
               />
             ))}
-          </div>
-
-          <div className="flex justify-center mt-6 space-x-4">
-            <button 
-              onClick={prevTestimonial}
-              className="p-2 rounded-full bg-white shadow hover:bg-gray-100 transition-colors duration-200"
-              aria-label="Previous testimonial"
-            >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button 
-              onClick={nextTestimonial}
-              className="p-2 rounded-full bg-white shadow hover:bg-gray-100 transition-colors duration-200"
-              aria-label="Next testimonial"
-            >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>

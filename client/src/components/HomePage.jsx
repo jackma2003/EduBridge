@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Import all component sections
+// Import all modernized component sections
 import Header from './homepage/Header';
 import HeroSection from './homepage/HeroSection';
 import PopularSubjects from './homepage/PopularSubjects';
@@ -61,7 +61,7 @@ const HomePage = () => {
   };
   
   return (
-    <>
+    <div className="bg-white">
       <Header 
         isLoggedIn={isLoggedIn}
         userRole={userRole}
@@ -80,15 +80,11 @@ const HomePage = () => {
       
       <FeaturesSection />
       
-      <FeaturedCourses 
-        handleExploreCourses={handleExploreCourses}
-      />
+      <StatsSection />
       
       <HowItWorks 
         handleGetStarted={handleGetStarted}
       />
-      
-      <StatsSection />
       
       <TestimonialsSlider />
       
@@ -98,7 +94,7 @@ const HomePage = () => {
       />
       
       <Footer />
-    </>
+    </div>
   );
 };
 

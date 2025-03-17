@@ -5,29 +5,43 @@ const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, ha
   const navigate = useNavigate();
   
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
+    <header className="bg-white backdrop-blur-md bg-opacity-90 sticky top-0 z-50 border-b border-gray-100">
+      <div className="container mx-auto px-4 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <div className="text-4xl mr-2">🌉</div>
+            <div className="text-4xl mr-3">🌉</div>
             <div>
-              <h1 className="text-2xl font-bold text-blue-700">EduBridge</h1>
-              <p className="text-xs text-gray-500">Learning Without Boundaries</p>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                EduBridge
+              </h1>
+              <p className="text-xs text-gray-500 font-medium tracking-wide">Learning Without Boundaries</p>
             </div>
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features-section" className="text-gray-700 hover:text-blue-700">Features</a>
-            <a href="#how-it-works" className="text-gray-700 hover:text-blue-700">How It Works</a>
-            <a href="#testimonials" className="text-gray-700 hover:text-blue-700">Testimonials</a>
-            <a href="/courses" className="text-gray-700 hover:text-blue-700">Courses</a>
+            <a href="#features-section" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+              Features
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+              How It Works
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+              Testimonials
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/courses" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+              Courses
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </a>
           </nav>
           
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <button 
                 onClick={() => navigate('/dashboard')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full hover:shadow-lg hover:shadow-blue-200 transition-all font-medium"
               >
                 Dashboard
               </button>
@@ -36,7 +50,7 @@ const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, ha
                 <div className="relative">
                   <button 
                     onClick={toggleRoleSelector}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center"
+                    className="px-5 py-2 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition flex items-center font-medium"
                   >
                     Log In 
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,22 +59,22 @@ const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, ha
                   </button>
                   
                   {showRoleSelector && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl py-2 z-10 border border-gray-100">
                       <button 
                         onClick={() => handleLogin('student')}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         Student Login
                       </button>
                       <button 
                         onClick={() => handleLogin('teacher')}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         Teacher Login
                       </button>
                       <button 
                         onClick={() => handleLogin('admin')}
-                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50"
+                        className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                       >
                         Admin Login
                       </button>
@@ -70,7 +84,7 @@ const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, ha
                 
                 <button 
                   onClick={handleGetStarted}
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                  className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full hover:shadow-lg hover:shadow-blue-200 transition-all font-medium"
                 >
                   Sign Up
                 </button>

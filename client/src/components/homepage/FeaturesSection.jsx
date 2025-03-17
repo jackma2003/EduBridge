@@ -35,13 +35,18 @@ const FeaturesSection = () => {
   ];
   
   return (
-    <section id="features-section" className="py-20 bg-white">
+    <section id="features-section" className="py-24 bg-gradient-to-b from-white to-blue-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Key Features</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Our platform is designed from the ground up to provide an exceptional learning experience 
-            with features that make education accessible, engaging, and effective.
+          <div className="inline-block bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-medium mb-4">
+            Platform Features
+          </div>
+          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+            Designed for Modern Learning
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            Our platform is engineered to make education accessible, engaging, and effective
+            with features that adapt to how you learn best.
           </p>
         </div>
 
@@ -49,11 +54,15 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="bg-gray-100 p-6 rounded-lg shadow-md transition-transform duration-300 hover:-translate-y-2"
+              className="bg-white p-8 rounded-2xl shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl border border-gray-100 group"
             >
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
+              <div className="flex flex-col">
+                <div className="mb-5 p-3 bg-blue-100 text-4xl w-16 h-16 flex items-center justify-center rounded-2xl group-hover:scale-110 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold mb-3 group-hover:text-blue-600 transition-colors">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
             </div>
           ))}
         </div>
