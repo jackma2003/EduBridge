@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { 
+  getAllUsers, 
+  getPendingTeachers, 
+  approveTeacher, 
+  rejectTeacher, 
+  registerAdmin 
+} from '../services/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -36,12 +42,7 @@ const AdminDashboard = () => {
   const fetchPendingTeachers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.get('http://localhost:5001/api/users/teachers/pending', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await getPendingTeachers();
       setPendingTeachers(response.data.data);
     } catch (err) {
       setError('Failed to load pending teacher applications');
@@ -54,12 +55,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.get('http://localhost:5001/api/users', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await getAllUsers();
       setUsers(response.data.users);
     } catch (err) {
       setError('Failed to load users');
@@ -72,12 +68,12 @@ const AdminDashboard = () => {
   const handleTeacherAction = async (id, action, reason = '') => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
-      await axios.put(`http://localhost:5001/api/users/teachers/${id}/${action}`, 
-        { reason },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (action === 'approve') {
+        await approveTeacher(id);
+      } else if (action === 'reject') {
+        await rejectTeacher(id, reason);
+      }
       
       // Refresh the list
       fetchPendingTeachers();
@@ -104,13 +100,7 @@ const AdminDashboard = () => {
     
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.post(
-        'http://localhost:5001/api/users/register/admin',
-        adminForm,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await registerAdmin(adminForm);
       
       setAdminFormSuccess('Admin created successfully!');
       setAdminForm({

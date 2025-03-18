@@ -24,11 +24,20 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// User Endpoints
 export const login = (email, password) => API.post('/users/login', { email, password });
 export const register = (userData) => API.post('/users/register', userData);
 export const getProfile = () => API.get('/users/profile');
 export const updateProfile = (userData) => API.put('/users/profile', userData);
 
+// Admin Endpoints
+export const getAllUsers = () => API.get('/users');
+export const getPendingTeachers = () => API.get('/users/teachers/pending');
+export const approveTeacher = (id) => API.put(`/users/teachers/${id}/approve`, {});
+export const rejectTeacher = (id, reason) => API.put(`/users/teachers/${id}/reject`, { reason });
+export const registerAdmin = (adminData) => API.post('/users/register/admin', adminData);
+
+// Course Endpoints
 export const getCourses = () => API.get('/courses');
 export const getCourse = (id) => API.get(`/courses/${id}`);
 export const createCourse = (courseData) => API.post('/courses', courseData);
