@@ -1,8 +1,18 @@
 // client/src/services/api.js
 import axios from 'axios';
 
+// Get the base URL based on environment
+const getBaseUrl = () => {
+  // If we're in production, use relative URLs
+  if (process.env.NODE_ENV === 'production') {
+    return '/api';
+  }
+  // In development, use the full URL to your API server
+  return 'http://localhost:5001/api';
+};
+
 const API = axios.create({
-  baseURL: '/api'
+  baseURL: getBaseUrl()
 });
 
 // Add token to requests if user is logged in

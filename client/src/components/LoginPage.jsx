@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../services/api'; // Import the login function
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -43,11 +43,8 @@ const LoginPage = () => {
       setLoading(true);
       setError('');
       
-      // Send login request to API
-      const response = await axios.post('http://localhost:5001/api/users/login', {
-        email,
-        password
-      });
+      // Use the API service instead of direct axios call
+      const response = await login(email, password);
       
       // Handle remember me
       if (rememberMe) {
