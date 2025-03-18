@@ -29,6 +29,7 @@ export const login = (email, password) => API.post('/users/login', { email, pass
 export const register = (userData) => API.post('/users/register', userData);
 export const getProfile = () => API.get('/users/profile');
 export const updateProfile = (userData) => API.put('/users/profile', userData);
+export const registerTeacher = (teacherData) => API.post('/users/register/teacher', teacherData);
 
 // Admin Endpoints
 export const getAllUsers = () => API.get('/users');

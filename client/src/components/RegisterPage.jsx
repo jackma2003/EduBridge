@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { register } from '../services/api';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -40,13 +40,7 @@ const RegisterPage = () => {
       setError('');
       
       // Send registration request to API
-      const response = await axios.post('http://localhost:5001/api/users/register', {
-        username,
-        email,
-        password,
-        name,
-        role // Include role in request
-      });
+      const response = await register({ username, email, password, name, role });
       
       // Save token in localStorage
       localStorage.setItem('token', response.data.token);

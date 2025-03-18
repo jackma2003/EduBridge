@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { registerTeacher } from "../services/api";
 
 const TeacherRegistrationPage = () => {
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ const TeacherRegistrationPage = () => {
       setError('');
       
       // Send teacher registration request to API
-      const response = await axios.post('http://localhost:5001/api/users/register/teacher', {
+      const response = await registerTeacher({
         username,
         email,
         password,
