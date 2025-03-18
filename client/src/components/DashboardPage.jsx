@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { getProfile } from '../services/api'; // Import from your API service
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -27,13 +27,8 @@ const DashboardPage = () => {
           return;
         }
         
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        };
-        
-        const response = await axios.get('http://localhost:5001/api/users/profile', config);
+        // Use API service instead of direct axios call with hardcoded URL
+        const response = await getProfile();
         setUser(response.data.user);
         
       } catch (err) {
