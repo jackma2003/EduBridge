@@ -30,6 +30,8 @@ export const register = (userData) => API.post('/users/register', userData);
 export const getProfile = () => API.get('/users/profile');
 export const updateProfile = (userData) => API.put('/users/profile', userData);
 export const registerTeacher = (teacherData) => API.post('/users/register/teacher', teacherData);
+export const checkInitialAdmin = () => API.post('/users/init-admin', { checkOnly: true });
+export const createInitialAdmin = (adminData) => API.post('/users/init-admin', adminData);
 
 // Admin Endpoints
 export const getAllUsers = () => API.get('/users');

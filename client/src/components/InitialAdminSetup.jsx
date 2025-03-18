@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { checkInitialAdmin, createInitialAdmin } from '../services/api';
 
 const InitialAdminSetup = () => {
   const navigate = useNavigate();
@@ -20,12 +20,9 @@ const InitialAdminSetup = () => {
 
   useEffect(() => {
     // Check if an admin already exists
-    // In InitialAdminSetup.jsx, in the useEffect
     const checkAdmin = async () => {
       try {
-        const response = await axios.post('http://localhost:5001/api/users/init-admin', {
-          checkOnly: true
-        });
+        await checkInitialAdmin();
         
         // If we get here, no admin exists yet
         setHasAdmin(false);
@@ -69,8 +66,8 @@ const InitialAdminSetup = () => {
     try {
       setLoading(true);
       
-      // Create initial admin
-      const response = await axios.post('http://localhost:5001/api/users/init-admin', {
+      // Create initial admin using API service
+      const response = await createInitialAdmin({
         username,
         email,
         password,
