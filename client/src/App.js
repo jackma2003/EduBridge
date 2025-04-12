@@ -8,6 +8,7 @@ import TeacherRegistrationPage from './components/TeacherRegistrationPage';
 import PendingApprovalPage from './components/PendingApprovalPage';
 import AdminDashboard from './components/AdminDashboard';
 import InitialAdminSetup from './components/InitialAdminSetup';
+import ExploreCourses from './components/ExploreCourses';
 import './index.css';
 
 // Private route component to protect routes that require authentication
@@ -64,6 +65,7 @@ function App() {
           <Route path="/register/teacher" element={<TeacherRegistrationPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/setup-admin" element={<InitialAdminSetup />} />
+          <Route path="/courses" element={<ExploreCourses />} />
           
           {/* Protected routes */}
           <Route 

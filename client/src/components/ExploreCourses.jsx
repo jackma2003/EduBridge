@@ -70,28 +70,12 @@ const HomePage = () => {
         handleLogin={handleLogin}
         handleGetStarted={handleGetStarted}
       />
+      <Courses>
+        
+      </Courses>
       
-      <HeroSection 
-        handleGetStarted={handleGetStarted}
-        handleExploreCourses={handleExploreCourses}
-      />
       
-      <PopularSubjects />
-      
-      <FeaturesSection />
-      
-      <StatsSection />
-      
-      <HowItWorks 
-        handleGetStarted={handleGetStarted}
-      />
-      
-      <TestimonialsSlider />
-      
-      <CTASection 
-        handleGetStarted={handleGetStarted}
-        handleExploreFeatures={handleExploreFeatures}
-      />
+
       
       <Footer />
     </div>
