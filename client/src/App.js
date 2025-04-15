@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
 import HomePage from './components/HomePage';
 import RegisterPage from './components/RegisterPage';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import TeacherRegistrationPage from './components/TeacherRegistrationPage';
-import TeacherDashboard from './components/TeacherDashboard';
 import PendingApprovalPage from './components/PendingApprovalPage';
 import AdminDashboard from './components/AdminDashboard';
 import InitialAdminSetup from './components/InitialAdminSetup';
 import ExploreCourses from './components/ExploreCourses';
+import TeacherDashboard from './components/TeacherDashboard';
+import CourseCreationForm from './components/CourseCreationForm';
 import './index.css';
 
 // Private route component to protect routes that require authentication
@@ -85,11 +85,22 @@ function App() {
           />
           
           {/* Teacher routes */}
-          <Route path="/teacher" element={
-            <TeacherRoute>
-              <TeacherDashboard />
-            </TeacherRoute>
-          } />
+          <Route 
+            path="/teacher" 
+            element={
+              <TeacherRoute>
+                <TeacherDashboard />
+              </TeacherRoute>
+            }
+          />
+          <Route 
+            path="/courses/create" 
+            element={
+              <TeacherRoute>
+                <CourseCreationForm />
+              </TeacherRoute>
+            }
+          />
           
           {/* Admin routes */}
           <Route 
