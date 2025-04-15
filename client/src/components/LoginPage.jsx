@@ -63,9 +63,13 @@ const LoginPage = () => {
       if (response.data.user.role === 'admin') {
         // Redirect admin users to admin dashboard
         navigate('/admin');
-      } else {
-        // Redirect regular users to student/teacher dashboard
-        navigate('/dashboard');
+        // Redirect teacher users to teacher dashboard
+      } else if (response.data.user.role === "teacher") {
+        navigate("/teacher");
+      }
+      else {
+        // Redirect student users to student dashboard
+        navigate("/dashboard");
       }
       
     } catch (err) {

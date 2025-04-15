@@ -1,10 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import HomePage from './components/HomePage';
 import RegisterPage from './components/RegisterPage';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import TeacherRegistrationPage from './components/TeacherRegistrationPage';
+import TeacherDashboard from './components/TeacherDashboard';
 import PendingApprovalPage from './components/PendingApprovalPage';
 import AdminDashboard from './components/AdminDashboard';
 import InitialAdminSetup from './components/InitialAdminSetup';
@@ -83,15 +85,11 @@ function App() {
           />
           
           {/* Teacher routes */}
-          <Route 
-            path="/courses/create" 
-            element={
-              <TeacherRoute>
-                {/* Replace with your CourseCreation component */}
-                <div>Course Creation Page (Create this component)</div>
-              </TeacherRoute>
-            }
-          />
+          <Route path="/teacher" element={
+            <TeacherRoute>
+              <TeacherDashboard />
+            </TeacherRoute>
+          } />
           
           {/* Admin routes */}
           <Route 

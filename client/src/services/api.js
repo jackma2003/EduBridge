@@ -47,3 +47,8 @@ export const createCourse = (courseData) => API.post('/courses', courseData);
 export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, courseData);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const rateCourse = (id, ratingData) => API.post(`/courses/${id}/rate`, ratingData);
+
+// Teacher Endpoints
+export const getTeacherCourses = () => API.get('/users/courses');
+export const getTeacherStudents = () => API.get('/teachers/students');
+export const getTeacherAnalytics = () => API.get('/teachers/analytics');

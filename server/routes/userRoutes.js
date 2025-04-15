@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Course = require('../models/Course');
 const TeacherProfile = require('../models/TeacherProfile');
 const jwt = require('jsonwebtoken');
 const { protect, authorize } = require('../middleware/auth');
@@ -135,6 +136,31 @@ router.post('/register/teacher', async (req, res, next) => {
         isVerified: user.isVerified,
         preferences: user.preferences
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/users/courses
+// @desc    Get courses created by the logged-in teacher
+// @access  Private (Teacher only)
+router.get('/courses', protect, authorize('teacher', 'admin'), async (req, res, next) => {
+  try {
+    let courses;
+    
+    if (req.user.role === 'admin') {
+      // If admin, get all courses
+      courses = await Course.find();
+    } else {
+      // If teacher, get only their courses
+      courses = await Course.find({ instructor: req.user.id });
+    }
+    
+    res.json({
+      status: 'success',
+      count: courses.length,
+      courses
     });
   } catch (error) {
     next(error);
