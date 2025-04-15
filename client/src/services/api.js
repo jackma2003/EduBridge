@@ -45,6 +45,7 @@ export const getCourses = () => API.get('/courses');
 export const getCourse = (id) => API.get(`/courses/${id}`);
 export const createCourse = (courseData) => API.post('/courses', courseData);
 export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, courseData);
+export const deleteCourse = (id) => API.delete(`/courses/${id}`);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const rateCourse = (id, ratingData) => API.post(`/courses/${id}/rate`, ratingData);
 

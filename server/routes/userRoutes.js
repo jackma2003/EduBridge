@@ -144,18 +144,13 @@ router.post('/register/teacher', async (req, res, next) => {
 
 // @route   GET /api/users/courses
 // @desc    Get courses created by the logged-in teacher
-// @access  Private (Teacher only)
+// @access  Private (Teacher/Admin)
 router.get('/courses', protect, authorize('teacher', 'admin'), async (req, res, next) => {
   try {
-    let courses;
-    
-    if (req.user.role === 'admin') {
-      // If admin, get all courses
-      courses = await Course.find();
-    } else {
-      // If teacher, get only their courses
-      courses = await Course.find({ instructor: req.user.id });
-    }
+    // Find courses where the instructor matches the logged in user
+    const courses = await Course.find({ instructor: req.user.id })
+      .populate('enrolledStudents.student', 'name email')
+      .populate('ratings.student', 'name');
     
     res.json({
       status: 'success',
