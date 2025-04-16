@@ -27,8 +27,21 @@ const HomePage = () => {
     if (token && user) {
       setIsLoggedIn(true);
       setUserRole(user.role);
+      
+      // Auto-redirect to appropriate dashboard based on role
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'teacher') {
+        if (user.isVerified) {
+          navigate('/teacher');
+        } else {
+          navigate('/pending-approval');
+        }
+      } else if (user.role === 'student') {
+        navigate('/dashboard');
+      }
     }
-  }, []);
+  }, [navigate]);
   
   // Navigation handlers
   const handleGetStarted = () => {

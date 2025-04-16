@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, handleLogin, handleGetStarted }) => {
   const navigate = useNavigate();
+  
+  // Handle redirecting to the appropriate dashboard
+  const navigateToDashboard = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else if (user.role === 'teacher') {
+      if (user.isVerified) {
+        navigate('/teacher');
+      } else {
+        navigate('/pending-approval');
+      }
+    } else {
+      navigate('/dashboard');
+    }
+  };
+  
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/'; // Force a full page reload to clear any state
+  };
   
   return (
     <header className="bg-white backdrop-blur-md bg-opacity-90 sticky top-0 z-50 border-b border-gray-100">
@@ -39,12 +63,20 @@ const Header = ({ isLoggedIn, userRole, showRoleSelector, toggleRoleSelector, ha
           
           <div className="flex items-center space-x-4">
             {isLoggedIn ? (
-              <button 
-                onClick={() => navigate('/dashboard')}
-                className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full hover:shadow-lg hover:shadow-blue-200 transition-all font-medium"
-              >
-                Dashboard
-              </button>
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={navigateToDashboard}
+                  className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full hover:shadow-lg hover:shadow-blue-200 transition-all font-medium"
+                >
+                  Dashboard
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="px-5 py-2 border border-red-500 text-red-500 rounded-full hover:bg-red-50 transition font-medium"
+                >
+                  Log Out
+                </button>
+              </div>
             ) : (
               <>
                 <div className="relative">
