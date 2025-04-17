@@ -414,6 +414,72 @@ router.put('/teachers/:id/reject', protect, authorize('admin'), async (req, res,
   }
 });
 
+// @route   PUT /api/users/:id
+// @desc    Update user (admin only)
+// @access  Private (Admin)
+router.put('/:id', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    const { name, email, username, isVerified, role } = req.body;
+    
+    // Find user by ID
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    // Prevent changing another admin's role
+    if (user.role === 'admin' && req.user.id !== user._id.toString() && role !== 'admin') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Cannot change role of another administrator'
+      });
+    }
+
+    // Update user fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (username) user.username = username;
+    
+    // Only update role if provided and not trying to change an admin's role
+    if (role && !(user.role === 'admin' && role !== 'admin')) {
+      user.role = role;
+    }
+    
+    // Update verification status if provided
+    if (typeof isVerified === 'boolean') {
+      user.isVerified = isVerified;
+    }
+
+    await user.save();
+
+    res.json({
+      status: 'success',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (error) {
+    // Handle duplicate key errors (username or email already exists)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        status: 'error',
+        message: `The ${field} is already taken. Please choose another.`
+      });
+    }
+    next(error);
+  }
+});
+
 // @route   DELETE /api/users/:id
 // @desc    Delete user
 // @access  Private (Admin only)
@@ -436,18 +502,41 @@ router.delete('/:id', protect, authorize('admin'), async (req, res, next) => {
       });
     }
 
+    // Check if user has created courses
+    const userCourses = await Course.find({ instructor: user._id });
+    if (userCourses.length > 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Cannot delete user with associated courses. Please delete or reassign their courses first.'
+      });
+    }
+
     // If it's a teacher, delete their profile too
     if (user.role === 'teacher') {
       await TeacherProfile.findOneAndDelete({ user: user._id });
     }
 
-    await user.remove();
+    // Remove user from enrolled courses
+    await Course.updateMany(
+      { 'enrolledStudents.student': user._id },
+      { $pull: { enrolledStudents: { student: user._id } } }
+    );
+
+    // Remove user ratings from courses
+    await Course.updateMany(
+      { 'ratings.student': user._id },
+      { $pull: { ratings: { student: user._id } } }
+    );
+
+    // Now delete the user
+    await user.deleteOne(); // or User.findByIdAndDelete(req.params.id);
 
     res.json({
       status: 'success',
       message: 'User deleted successfully'
     });
   } catch (error) {
+    console.error('User deletion error:', error);
     next(error);
   }
 });

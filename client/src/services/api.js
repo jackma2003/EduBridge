@@ -24,12 +24,27 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// User Endpoints
+// Response interceptor to handle common errors
+API.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Handle 401 Unauthorized - redirect to login
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// User/Auth Endpoints
 export const login = (email, password) => API.post('/users/login', { email, password });
 export const register = (userData) => API.post('/users/register', userData);
 export const getProfile = () => API.get('/users/profile');
 export const updateProfile = (userData) => API.put('/users/profile', userData);
-export const registerTeacher = (teacherData) => API.post('/users/register/teacher', teacherData);
 export const checkInitialAdmin = () => API.post('/users/init-admin', { checkOnly: true });
 export const createInitialAdmin = (adminData) => API.post('/users/init-admin', adminData);
 
@@ -39,6 +54,15 @@ export const getPendingTeachers = () => API.get('/users/teachers/pending');
 export const approveTeacher = (id) => API.put(`/users/teachers/${id}/approve`, {});
 export const rejectTeacher = (id, reason) => API.put(`/users/teachers/${id}/reject`, { reason });
 export const registerAdmin = (adminData) => API.post('/users/register/admin', adminData);
+export const deleteUser = (userId) => API.delete(`/users/${userId}`);
+export const editUser = (userId, userData) => API.put(`/users/${userId}`, userData);
+export const verifyUser = (userId) => API.put(`/users/${userId}/verify`, {});
+
+// Teacher Endpoints
+export const registerTeacher = (teacherData) => API.post('/users/register/teacher', teacherData);
+export const getTeacherCourses = () => API.get('/users/courses');
+export const getTeacherStudents = () => API.get('/teachers/students');
+export const getTeacherAnalytics = () => API.get('/teachers/analytics');
 
 // Course Endpoints
 export const getCourses = () => API.get('/courses');
@@ -49,7 +73,12 @@ export const deleteCourse = (id) => API.delete(`/courses/${id}`);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const rateCourse = (id, ratingData) => API.post(`/courses/${id}/rate`, ratingData);
 
-// Teacher Endpoints
-export const getTeacherCourses = () => API.get('/users/courses');
-export const getTeacherStudents = () => API.get('/teachers/students');
-export const getTeacherAnalytics = () => API.get('/teachers/analytics');
+// Additional helper functions for User management
+export const getCurrentUser = () => getProfile();
+export const updateUserProfile = (userData) => updateProfile(userData);
+export const changePassword = (passwordData) => API.put('/users/change-password', passwordData);
+export const forgotPassword = (email) => API.post('/users/forgot-password', { email });
+export const resetPassword = (token, newPassword) => API.post('/users/reset-password', { token, newPassword });
+export const verifyEmail = (token) => API.get(`/users/verify-email/${token}`);
+
+export default API;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Import all modernized component sections
 import Header from './homepage/Header';
 import HeroSection from './homepage/HeroSection';
 import PopularSubjects from './homepage/PopularSubjects';
 import FeaturesSection from './homepage/FeaturesSection';
-import Courses from './homepage/Courses';
+//import Courses from './homepage/Courses';
 import HowItWorks from './homepage/HowItWorks';
 import StatsSection from './homepage/StatsSection';
 import TestimonialsSlider from './homepage/TestimonialsSlider';
@@ -15,6 +15,7 @@ import Footer from './homepage/Footer';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
@@ -28,20 +29,25 @@ const HomePage = () => {
       setIsLoggedIn(true);
       setUserRole(user.role);
       
-      // Auto-redirect to appropriate dashboard based on role
-      if (user.role === 'admin') {
-        navigate('/admin');
-      } else if (user.role === 'teacher') {
-        if (user.isVerified) {
-          navigate('/teacher');
-        } else {
-          navigate('/pending-approval');
+      // Only auto-redirect if not coming from admin dashboard
+      const fromAdmin = location.state && location.state.fromAdmin;
+      
+      if (!fromAdmin) {
+        // Auto-redirect to appropriate dashboard based on role
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else if (user.role === 'teacher') {
+          if (user.isVerified) {
+            navigate('/teacher');
+          } else {
+            navigate('/pending-approval');
+          }
+        } else if (user.role === 'student') {
+          navigate('/dashboard');
         }
-      } else if (user.role === 'student') {
-        navigate('/dashboard');
       }
     }
-  }, [navigate]);
+  }, [navigate, location]);
   
   // Navigation handlers
   const handleGetStarted = () => {

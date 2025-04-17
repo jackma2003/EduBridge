@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import HomePage from './components/HomePage';
 import RegisterPage from './components/RegisterPage';
 import LoginPage from './components/LoginPage';
-import DashboardPage from './components/DashboardPage';
+import StudentDashboard from './components/DashboardPage';
 import TeacherRegistrationPage from './components/TeacherRegistrationPage';
 import PendingApprovalPage from './components/PendingApprovalPage';
 import AdminDashboard from './components/AdminDashboard';
@@ -155,8 +155,8 @@ function App() {
           <Route 
             path="/dashboard" 
             element={
-              <PrivateRoute>
-                <DashboardPage />
+              <PrivateRoute requiredRole="student">
+                <StudentDashboard />
               </PrivateRoute>
             }
           />
