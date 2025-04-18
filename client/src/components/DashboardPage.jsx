@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, getCourses } from '../services/api';
+import { getProfile, getCourses, getCourse } from '../services/api';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -54,23 +54,61 @@ const StudentDashboard = () => {
         
         setStudent(profileResponse.data.user);
         
-        // Get enrolled courses
-        const enrolledCoursesData = profileResponse.data.user.enrolledCourses || [];
-        setEnrolledCourses(enrolledCoursesData);
+        // Get enrolled courses - FIX HERE
+        const enrolledCourseIds = profileResponse.data.user.enrolledCourses || [];
         
-        // Get recommended courses
-        const coursesResponse = await getCourses();
-        // Filter out courses that the student is already enrolled in
-        const enrolled = enrolledCoursesData.map(course => course._id);
-        const recommended = coursesResponse.data.courses
-          .filter(course => !enrolled.includes(course._id))
+        // Get all courses first
+        const allCoursesResponse = await getCourses();
+        const allCourses = allCoursesResponse.data.courses;
+        
+        // Extract enrolled courses with full details
+        let enrolledCoursesWithDetails = [];
+        
+        if (enrolledCourseIds.length > 0) {
+          // If enrolledCourses contains full objects with _id property
+          if (typeof enrolledCourseIds[0] === 'object' && enrolledCourseIds[0]._id) {
+            const enrolledIds = enrolledCourseIds.map(course => course._id);
+            enrolledCoursesWithDetails = allCourses.filter(course => 
+              enrolledIds.includes(course._id)
+            );
+          } 
+          // If enrolledCourses contains just ID strings
+          else if (typeof enrolledCourseIds[0] === 'string') {
+            enrolledCoursesWithDetails = allCourses.filter(course => 
+              enrolledCourseIds.includes(course._id)
+            );
+          }
+          // If each enrolled course is just an ID
+          else {
+            // Fetch each course individually if needed
+            for (const courseId of enrolledCourseIds) {
+              try {
+                const courseResponse = await getCourse(
+                  typeof courseId === 'object' ? courseId._id : courseId
+                );
+                if (courseResponse.data.course) {
+                  enrolledCoursesWithDetails.push(courseResponse.data.course);
+                }
+              } catch (courseErr) {
+                console.error('Error fetching individual course:', courseErr);
+              }
+            }
+          }
+        }
+        
+        setEnrolledCourses(enrolledCoursesWithDetails);
+        
+        // Get recommended courses - filter out courses the student is already enrolled in
+        const enrolledIds = enrolledCoursesWithDetails.map(course => course._id);
+        const recommended = allCourses
+          .filter(course => !enrolledIds.includes(course._id))
           .slice(0, 3); // Get top 3 recommendations
         
         setRecommendedCourses(recommended);
         
         // Calculate dashboard statistics
-        const completed = enrolledCoursesData.filter(course => course.progress === 100).length;
-        const totalHours = enrolledCoursesData.reduce((total, course) => {
+        const completed = enrolledCoursesWithDetails.filter(course => course.progress === 100).length;
+        const totalHours = enrolledCoursesWithDetails.reduce((total, course) => {
           // Calculate total hours based on course modules and content
           const moduleHours = course.modules?.reduce((moduleTotal, module) => {
             return moduleTotal + (module.content?.reduce((contentTotal, content) => {
@@ -82,7 +120,7 @@ const StudentDashboard = () => {
         }, 0);
         
         // Count upcoming assignments
-        const dueAssignments = enrolledCoursesData.reduce((total, course) => {
+        const dueAssignments = enrolledCoursesWithDetails.reduce((total, course) => {
           const assignments = course.modules?.reduce((moduleTotal, module) => {
             return moduleTotal + (module.content?.filter(content => 
               content.type === 'assignment' && !content.completed
@@ -94,7 +132,7 @@ const StudentDashboard = () => {
         
         // Calculate average grade if available
         let avgGrade = 0;
-        const coursesWithGrades = enrolledCoursesData.filter(course => course.grade);
+        const coursesWithGrades = enrolledCoursesWithDetails.filter(course => course.grade);
         
         if (coursesWithGrades.length > 0) {
           avgGrade = (coursesWithGrades.reduce((total, course) => 

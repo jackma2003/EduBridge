@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCourse, enrollCourse, rateCourse } from '../services/api';
+import { getCourse, enrollCourse, rateCourse, unenrollCourse } from '../services/api';
 
 // Import components
 import Navigation from './coursepage/Navigation';
@@ -18,6 +18,7 @@ const CourseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [enrolling, setEnrolling] = useState(false);
+  const [unenrolling, setUnenrolling] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -105,6 +106,31 @@ const CourseDetailPage = () => {
       }
     } finally {
       setEnrolling(false);
+    }
+  };
+
+  // Handle course unenrollment
+  const handleUnenroll = async () => {
+    try {
+      if (!isLoggedIn) {
+        navigate('/login');
+        return;
+      }
+  
+      setUnenrolling(true);
+      
+      // Use the unenrollCourse API function
+      await unenrollCourse(id);
+      
+      setIsEnrolled(false);
+      // Redirect to dashboard to see updated enrolled courses
+      navigate('/dashboard');
+        
+    } catch (err) {
+      console.error('Error unenrolling from course:', err);
+      setError('Failed to unenroll from the course. Please try again.');
+    } finally {
+      setUnenrolling(false);
     }
   };
 
@@ -202,6 +228,7 @@ const CourseDetailPage = () => {
               isEnrolled={isEnrolled}
               enrolling={enrolling}
               handleEnroll={handleEnroll}
+              handleUnenroll={handleUnenroll}
               courseId={course._id}
               isTeacher={userRole === 'teacher'}
               isCurrentTeacher={userRole === 'teacher' && course.instructor?._id === userId}

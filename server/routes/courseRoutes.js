@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const Course = require('../models/Course');
+const User = require('../models/User'); // Make sure to include User model
 const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/courses
@@ -192,6 +193,52 @@ router.post('/:id/enroll', protect, async (req, res, next) => {
     res.json({
       status: 'success',
       message: 'Successfully enrolled in course'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/courses/:id/unenroll
+// @desc    Unenroll from a course
+// @access  Private
+router.post('/:id/unenroll', protect, async (req, res, next) => {
+  try {
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is enrolled
+    const isEnrolled = course.enrolledStudents.some(
+      (student) => student.student.toString() === req.user.id
+    );
+
+    if (!isEnrolled) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Not enrolled in this course'
+      });
+    }
+
+    // Remove user from course enrolledStudents
+    course.enrolledStudents = course.enrolledStudents.filter(
+      (student) => student.student.toString() !== req.user.id
+    );
+    await course.save();
+
+    // Remove course from user enrolledCourses
+    await User.findByIdAndUpdate(req.user.id, {
+      $pull: { enrolledCourses: course._id }
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Successfully unenrolled from course'
     });
   } catch (error) {
     next(error);

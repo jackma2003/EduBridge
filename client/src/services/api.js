@@ -71,6 +71,7 @@ export const createCourse = (courseData) => API.post('/courses', courseData);
 export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, courseData);
 export const deleteCourse = (id) => API.delete(`/courses/${id}`);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
+export const unenrollCourse = (id) => API.post(`/courses/${id}/unenroll`);
 export const rateCourse = (id, ratingData) => API.post(`/courses/${id}/rate`, ratingData);
 
 // Additional helper functions for User management
