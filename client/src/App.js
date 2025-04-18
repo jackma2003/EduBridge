@@ -11,6 +11,7 @@ import InitialAdminSetup from './components/InitialAdminSetup';
 import ExploreCourses from './components/ExploreCourses';
 import TeacherDashboard from './components/TeacherDashboard';
 import CourseCreationForm from './components/CourseCreationForm';
+import CourseDetailPage from './components/CourseDetailPage'; // Import CourseDetailPage
 import './index.css';
 
 // Auth check and redirect component
@@ -149,7 +150,10 @@ function App() {
             </PublicRoute>
           } />
           <Route path="/setup-admin" element={<InitialAdminSetup />} />
+          
+          {/* Course routes - accessible to all (even without login) */}
           <Route path="/courses" element={<ExploreCourses />} />
+          <Route path="/courses/:id" element={<CourseDetailPage />} />
           
           {/* Protected routes */}
           <Route 
@@ -181,6 +185,14 @@ function App() {
           />
           <Route 
             path="/courses/create" 
+            element={
+              <TeacherRoute>
+                <CourseCreationForm />
+              </TeacherRoute>
+            }
+          />
+          <Route 
+            path="/courses/edit/:id" 
             element={
               <TeacherRoute>
                 <CourseCreationForm />
