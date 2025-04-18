@@ -11,7 +11,7 @@ import InitialAdminSetup from './components/InitialAdminSetup';
 import ExploreCourses from './components/ExploreCourses';
 import TeacherDashboard from './components/TeacherDashboard';
 import CourseCreationForm from './components/CourseCreationForm';
-import CourseDetailPage from './components/CourseDetailPage'; // Import CourseDetailPage
+import CourseDetailPage from './components/CourseDetailPage';
 import './index.css';
 
 // Auth check and redirect component
@@ -191,6 +191,7 @@ function App() {
               </TeacherRoute>
             }
           />
+          {/* Edit course route */}
           <Route 
             path="/courses/edit/:id" 
             element={
