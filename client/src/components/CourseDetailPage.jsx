@@ -134,36 +134,50 @@ const CourseDetailPage = () => {
     }
   };
 
-  // Handle rating submission
-  const handleRatingSubmit = async (e) => {
-    e.preventDefault();
+// Handle rating submission
+const handleRatingSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (userRating === 0) {
+    setRatingError('Please select a rating.');
+    return;
+  }
+  
+  try {
+    setSubmittingRating(true);
+    setRatingError('');
     
-    if (userRating === 0) {
-      setRatingError('Please select a rating.');
-      return;
+    // Send the rating to the server
+    await rateCourse(id, {
+      rating: userRating,
+      review: userReview
+    });
+    
+    // Refresh the course data to get updated ratings
+    const courseResponse = await getCourse(id);
+    setCourse(courseResponse.data.course);
+    
+    // Update local user rating values to match what was submitted
+    // (This helps maintain consistency if they edit again before refresh)
+    const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
+    const userRatingObj = courseResponse.data.course.ratings.find(
+      rating => rating.student?._id === userId || rating.student === userId
+    );
+    
+    if (userRatingObj) {
+      setUserRating(userRatingObj.rating);
+      setUserReview(userRatingObj.review || '');
     }
     
-    try {
-      setSubmittingRating(true);
-      setRatingError('');
-      
-      await rateCourse(id, {
-        rating: userRating,
-        review: userReview
-      });
-      
-      // Refresh course data
-      const response = await getCourse(id);
-      setCourse(response.data.course);
-      
-      setShowRatingForm(false);
-    } catch (err) {
-      console.error('Error submitting rating:', err);
-      setRatingError('Failed to submit rating. Please try again.');
-    } finally {
-      setSubmittingRating(false);
-    }
-  };
+    // Hide the rating form
+    setShowRatingForm(false);
+  } catch (err) {
+    console.error('Error submitting rating:', err);
+    setRatingError('Failed to submit rating. Please try again.');
+  } finally {
+    setSubmittingRating(false);
+  }
+};
 
   // Loading state
   if (loading) {

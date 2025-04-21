@@ -72,7 +72,30 @@ export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, course
 export const deleteCourse = (id) => API.delete(`/courses/${id}`);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const unenrollCourse = (id) => API.post(`/courses/${id}/unenroll`);
-export const rateCourse = (id, ratingData) => API.post(`/courses/${id}/rate`, ratingData);
+export const rateCourse = (id, ratingData) => {
+  // Ensure the rating is a number between 1-5
+  const validatedRating = {
+    ...ratingData,
+    rating: Number(ratingData.rating)
+  };
+  
+  // Validate rating is between 1-5
+  if (isNaN(validatedRating.rating) || validatedRating.rating < 1 || validatedRating.rating > 5) {
+    return Promise.reject(new Error('Rating must be a number between 1 and 5'));
+  }
+  
+  return API.post(`/courses/${id}/rate`, validatedRating);
+};
+
+// Course Progress Endpoints
+export const updateModuleProgress = (courseId, moduleId, progress) => 
+  API.put(`/courses/${courseId}/modules/${moduleId}/progress`, { progress });
+
+export const completeContent = (courseId, moduleId, contentId) => 
+  API.put(`/courses/${courseId}/modules/${moduleId}/content/${contentId}/complete`, {});
+
+export const markVideoWatched = (courseId, moduleId, contentId) =>
+  API.put(`/courses/${courseId}/modules/${moduleId}/content/${contentId}/watch`, {});
 
 // Additional helper functions for User management
 export const getCurrentUser = () => getProfile();

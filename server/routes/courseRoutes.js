@@ -245,6 +245,8 @@ router.post('/:id/unenroll', protect, async (req, res, next) => {
   }
 });
 
+// Replace the existing rating route in courseRoutes.js
+
 // @route   POST /api/courses/:id/rate
 // @desc    Rate a course
 // @access  Private (Enrolled students only)
@@ -252,6 +254,18 @@ router.post('/:id/rate', protect, async (req, res, next) => {
   try {
     const { rating, review } = req.body;
 
+    // Convert rating to a number if it's not already
+    const numericRating = Number(rating);
+    
+    // Validate the rating
+    if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Rating must be a number between 1 and 5'
+      });
+    }
+
+    // Find the course
     const course = await Course.findById(req.params.id);
 
     if (!course) {
@@ -280,24 +294,30 @@ router.post('/:id/rate', protect, async (req, res, next) => {
 
     if (existingRatingIndex !== -1) {
       // Update existing rating
-      course.ratings[existingRatingIndex].rating = rating;
-      if (review) course.ratings[existingRatingIndex].review = review;
+      course.ratings[existingRatingIndex].rating = numericRating;
+      if (review !== undefined) {
+        course.ratings[existingRatingIndex].review = review;
+      }
     } else {
       // Add new rating
       course.ratings.push({
         student: req.user.id,
-        rating,
-        review
+        rating: numericRating,
+        review: review || ''
       });
     }
 
+    // Save the course - the pre-save hook will calculate the new average
     await course.save();
 
     res.json({
       status: 'success',
-      message: 'Rating submitted successfully'
+      message: 'Rating submitted successfully',
+      averageRating: course.averageRating,
+      ratingCount: course.ratings.length
     });
   } catch (error) {
+    console.error('Rating error:', error);
     next(error);
   }
 });

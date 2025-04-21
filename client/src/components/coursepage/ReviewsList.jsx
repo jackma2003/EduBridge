@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const ReviewsList = ({ ratings, formatDate }) => {
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  
+  // Determine which reviews to display
+  const displayedReviews = showAllReviews ? ratings : ratings.slice(0, 3);
+  
   return (
     <div className="border-t border-gray-200 px-6 py-5">
       <h2 className="text-lg font-medium text-gray-900 mb-4">Student Reviews</h2>
       
       <div className="space-y-4">
-        {ratings.slice(0, 3).map((rating, index) => (
-          <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+        {displayedReviews.map((rating, index) => (
+          <div key={`${rating.student?._id || 'anonymous'}-${rating.createdAt}-${index}`} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
             <div className="flex items-center mb-1">
               <div className="flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -38,9 +43,10 @@ const ReviewsList = ({ ratings, formatDate }) => {
         {ratings.length > 3 && (
           <div className="text-center">
             <button 
+              onClick={() => setShowAllReviews(!showAllReviews)}
               className="text-sm font-medium text-blue-600 hover:text-blue-500"
             >
-              View all {ratings.length} reviews
+              {showAllReviews ? 'Show fewer reviews' : `View all ${ratings.length} reviews`}
             </button>
           </div>
         )}

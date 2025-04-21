@@ -106,6 +106,11 @@ const courseSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  // Add averageRating as an actual field in the schema
+  averageRating: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -114,19 +119,25 @@ const courseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+}, { 
+  // Add toJSON configuration to include virtuals
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-// Calculate average rating
-courseSchema.virtual('averageRating').get(function() {
-  if (this.ratings.length === 0) return 0;
-  
-  const sum = this.ratings.reduce((total, rating) => total + rating.rating, 0);
-  return (sum / this.ratings.length).toFixed(1);
-});
-
-// Update the updatedAt field on save
+// Pre-save middleware to calculate average rating before saving
 courseSchema.pre('save', function(next) {
+  // Only calculate if there are ratings
+  if (this.ratings && this.ratings.length > 0) {
+    const totalRating = this.ratings.reduce((sum, item) => sum + item.rating, 0);
+    this.averageRating = parseFloat((totalRating / this.ratings.length).toFixed(1));
+  } else {
+    this.averageRating = 0;
+  }
+  
+  // Update the updatedAt field
   this.updatedAt = Date.now();
+  
   next();
 });
 
