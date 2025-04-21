@@ -1,121 +1,90 @@
 # EduBridge 🌉 Learning Without Boundaries
 
 ## 🌍 Our Mission
-EduBridge is an innovative, inclusive digital learning platform designed to break down educational barriers and create accessible learning experiences for learners worldwide. Our mission is to democratize education by providing personalized, flexible, and engaging learning opportunities for everyone.
+EduBridge is a modern learning management system designed to connect educators and students in an intuitive digital environment. Our platform enables teachers to create and share courses while providing students with accessible, engaging learning experiences.
 
-## 🏛️ Architecture Overview
-EduBridge employs a modern, scalable architecture designed for reliability and growth:
+## 💻 Technology Stack
 
-- **Microservices Architecture**: Loosely coupled, independently deployable services
-- **Event-Driven Communication**: Asynchronous messaging between services via Kafka
-- **API Gateway Pattern**: Centralized entry point for all client requests
-- **Containerization**: Services packaged in Docker containers for consistent deployment
-- **Stateless Services**: Designed for horizontal scaling and improved fault tolerance
-- **Offline-First Approach**: Robust client-side capabilities with data synchronization
+### Frontend
+- **React.js**: Building dynamic, responsive user interfaces
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
+- **React Router**: Client-side routing for single-page application
+
+### Backend
+- **Node.js/Express**: RESTful API endpoints
+- **JWT Authentication**: Secure user authentication and session management
+- **MongoDB**: Flexible document database for storing user data and course content
 
 ## ✨ Key Features
 
-### 🎯 Personalized Learning Experiences
-- **Adaptive Learning Paths**: Intelligent algorithms create custom learning journeys tailored to individual learning styles, knowledge levels, and goals
-- **Progress Tracking**: Comprehensive dashboards provide real-time insights into learning progress, achievements, and areas for improvement
-- **Learning Path Generator**: Creates personalized learning recommendations
+### 👥 Role-Based Access
+- **Students**: Browse courses, enroll, track progress, and provide feedback
+- **Teachers**: Create and manage courses, monitor student engagement
+- **Administrators**: Verify teacher applications, manage users, and oversee platform operations
 
-### 🌐 Inclusive Design
-- **Multilingual Support**: Content available in multiple languages with seamless language switching
-- **Accessibility**: WCAG 2.1 AA compliant interface ensuring learning is accessible to users with diverse abilities
+### 📚 Course Management
+- **Course Creation**: Intuitive interface for teachers to build structured courses
+- **Module-Based Learning**: Organize content into logical modules and sections
+- **Multi-format Content**: Support for videos, documents, and interactive content
+- **Content Versioning**: Update course materials seamlessly
+
+### 🎯 Student Experience
+- **Personalized Dashboard**: Track enrolled courses and learning progress
+- **Course Exploration**: Browse and search available courses
+- **Self-paced Learning**: Progress through course materials at your own speed
+- **Course Ratings**: Provide feedback and view course ratings
+
+### 👨‍🏫 Teacher Tools
+- **Teacher Dashboard**: Monitor course enrollment and student engagement
+- **Course Analytics**: Track ratings and student progress
+- **Content Management**: Easy-to-use interface for creating and organizing course materials
+- **Publication Controls**: Choose when to publish content to students
+
+### 🔒 Administration
+- **Teacher Verification**: Review and approve teacher applications
+- **User Management**: Manage student and teacher accounts
+- **Platform Oversight**: Monitor system usage and performance
+
+## 📱 User Interface
+
 - **Responsive Design**: Fully functional across desktop, tablet, and mobile devices
-
-### 🔒 Flexible Learning
-- **Offline Mode**: Download course content for learning without internet connectivity
-- **Sync Capabilities**: Automatic progress synchronization when online
-- **Cross-Platform Compatibility**: Learn from anywhere, anytime
-
-### 🤝 Collaborative Learning
-- **Discussion Forums**: Engage in meaningful academic discussions
-- **Study Groups**: Form and manage peer learning communities
-- **Peer Review Processor**: Structured feedback and assessment tools
-
-### 📚 Rich Content Ecosystem
-- **Diverse Content Types**: Video lectures, interactive quizzes, documents, assignments
-- **Content Version Control**: Managed versioning of educational materials
-- **Content Localization**: Support for translating materials into multiple languages
-- **Media Processing**: Automated transcoding and optimization for different devices
+- **Intuitive Navigation**: User-friendly interface with clear pathways
+- **Modern Aesthetics**: Clean, professional design using Tailwind CSS
 
 ## 🛠️ Core System Components
 
-### User Service
-Manages user registration, authentication, profiles, and preferences
+### Authentication System
+- Secure login/registration flow
+- Role-based access control
+- JWT token-based session management
 
-### Course Service
-Handles course creation, publishing, enrollment, and catalog management
+### Course System
+- Course creation and management
+- Structured content organization
+- Enrollment management
+- Rating and feedback mechanism
 
-### Content Management Service
-Controls storage, retrieval, and delivery of educational content
+### User Management
+- Profile management
+- Teacher application and verification process
+- Role assignment and permissions
 
-### Progress Tracking Service
-Monitors and records learner progress and generates learning paths
+## 🌐 Getting Started
 
-### Collaboration Service
-Facilitates forums, study groups, and peer interaction
+### For Students
+1. Create an account
+2. Browse available courses
+3. Enroll in courses of interest
+4. Track your progress through your personal dashboard
 
-### Search Service
-Provides content and course discovery functionality
+### For Teachers
+1. Register with professional credentials
+2. Complete the verification process
+3. Create and structure your courses
+4. Publish and monitor student engagement
 
-### Analytics Service
-Processes user data for insights and personalization
-
-### Notification Service
-Manages alerts and communications to users
-
-## 🚀 Technology Stack
-
-### Frontend
-- **React.js**: Creating dynamic, responsive user interfaces
-- **Progressive Web App**: Offline capabilities and mobile-friendly experience
-- **Accessibility**: WCAG 2.1 AA compliance
-
-### Backend
-- **Node.js/Express**: Efficient handling of concurrent API requests
-- **Kafka**: Event streaming for service communication
-- **JWT Authentication**: Secure user sessions
-
-### Database
-- **MongoDB**: Primary database with flexible schema for educational content
-- **Redis**: High-performance caching
-- **Elasticsearch**: Efficient content discovery
-
-### DevOps & Infrastructure
-- **Docker**: Containerization of all services
-- **Kubernetes**: Container orchestration
-- **CDN**: Efficient global content delivery
-- **Auto-scaling**: Dynamic resource allocation based on demand
-
-## 🔍 Resource Optimization
-
-- **Caching Strategy**: Multi-level caching (browser, CDN, application)
-- **Database Optimization**: Compound indexes for common queries
-- **Content Delivery**: CDN with edge caching for media files
-- **Load Management**: Rate limiting and traffic shaping
-- **Resource Monitoring**: Proactive scaling based on usage patterns
-
-## 💻 Browser Compatibility
-- Chrome (latest 2 versions)
-- Firefox (latest 2 versions)
-- Safari (latest 2 versions)
-- Edge (latest 2 versions)
-- Mobile browsers: Chrome for Android, Safari for iOS (latest versions)
-
-## 🌏 Internationalization
-Initial release supporting English, Spanish, and French, with architecture designed to add more languages without code changes.
-
-## 🔮 Future Roadmap
-- AI-Enhanced Learning (personalized paths, content recommendations)
-- Extended Reality (XR) Content Support
-- Blockchain for Secure Credential Verification
-- Advanced Learning Analytics and Predictive Modeling
-- Mobile Native Applications
-
-## 🔒 Compliance
-- WCAG 2.1 AA accessibility standards
-- GDPR data privacy compliance
-- FERPA compliance for educational data
+### For Administrators
+1. Access the admin dashboard
+2. Review teacher applications
+3. Manage user accounts
+4. Monitor platform usage
