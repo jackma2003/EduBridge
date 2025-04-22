@@ -12,6 +12,7 @@ import ExploreCourses from './components/ExploreCourses';
 import TeacherDashboard from './components/TeacherDashboard';
 import CourseCreationForm from './components/CourseCreationForm';
 import CourseDetailPage from './components/CourseDetailPage';
+import CourseStudents from './components/CourseStudents'; // Import the new component
 import './index.css';
 
 // Auth check and redirect component
@@ -154,6 +155,16 @@ function App() {
           {/* Course routes - accessible to all (even without login) */}
           <Route path="/courses" element={<ExploreCourses />} />
           <Route path="/courses/:id" element={<CourseDetailPage />} />
+          
+          {/* Course students route - accessible to teachers */}
+          <Route 
+            path="/courses/:id/students" 
+            element={
+              <TeacherRoute>
+                <CourseStudents />
+              </TeacherRoute>
+            }
+          />
           
           {/* Protected routes */}
           <Route 

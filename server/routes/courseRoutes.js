@@ -85,6 +85,43 @@ router.post('/', protect, authorize('teacher', 'admin'), async (req, res, next) 
   }
 });
 
+// @route   GET /api/courses/:id/students
+// @desc    Get all students enrolled in a course
+// @access  Private (Course instructor/Admin)
+router.get('/:id/students', protect, async (req, res, next) => {
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate({
+        path: 'enrolledStudents.student',
+        select: 'name email profilePicture'
+      });
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is course instructor or admin
+    if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to view the student list for this course'
+      });
+    }
+
+    // Return the enrolled students
+    res.json({
+      status: 'success',
+      courseTitle: course.title,
+      students: course.enrolledStudents
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // @route   PUT /api/courses/:id
 // @desc    Update course
 // @access  Private (Course instructor/Admin)

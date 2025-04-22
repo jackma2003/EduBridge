@@ -5,7 +5,7 @@ const EnrollmentButton = ({
   isEnrolled, 
   enrolling, 
   handleEnroll, 
-  handleUnenroll, // Add unenroll handler
+  handleUnenroll,
   courseId, 
   isTeacher,
   isCurrentTeacher
@@ -22,9 +22,15 @@ const EnrollmentButton = ({
     setShowUnenrollConfirm(false);
   };
   
+  // Navigate to view students page for the course
+  const viewStudents = () => {
+    navigate(`/courses/${courseId}/students`);
+  };
+  
   return (
     <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-      {!isEnrolled ? (
+      {/* Only show enroll button for non-teachers who are not enrolled */}
+      {!isTeacher && !isEnrolled && (
         <button
           onClick={handleEnroll}
           disabled={enrolling}
@@ -42,7 +48,10 @@ const EnrollmentButton = ({
             </>
           ) : 'Enroll in Course'}
         </button>
-      ) : showUnenrollConfirm ? (
+      )}
+      
+      {/* Show unenroll confirmation for enrolled non-teachers */}
+      {!isTeacher && isEnrolled && showUnenrollConfirm && (
         <div className="flex space-x-2">
           <button
             onClick={confirmUnenroll}
@@ -68,7 +77,10 @@ const EnrollmentButton = ({
             Cancel
           </button>
         </div>
-      ) : (
+      )}
+      
+      {/* Show continue learning and unenroll for enrolled non-teachers */}
+      {!isTeacher && isEnrolled && !showUnenrollConfirm && (
         <div className="flex space-x-2">
           <button
             onClick={() => navigate('/dashboard')}
@@ -85,7 +97,20 @@ const EnrollmentButton = ({
         </div>
       )}
       
-      {/* Teacher edit button */}
+      {/* View Students button for any teacher */}
+      {isTeacher && (
+        <button
+          onClick={viewStudents}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <svg className="-ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+          </svg>
+          View Students
+        </button>
+      )}
+      
+      {/* Teacher edit button - only for the course creator */}
       {isTeacher && isCurrentTeacher && (
         <Link 
           to={`/courses/edit/${courseId}`}

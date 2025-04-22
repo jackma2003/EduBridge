@@ -72,6 +72,8 @@ export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, course
 export const deleteCourse = (id) => API.delete(`/courses/${id}`);
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const unenrollCourse = (id) => API.post(`/courses/${id}/unenroll`);
+// Get all students enrolled in a specific course
+export const getCourseStudents = (courseId) => API.get(`/courses/${courseId}/students`);
 export const rateCourse = (id, ratingData) => {
   // Ensure the rating is a number between 1-5
   const validatedRating = {
