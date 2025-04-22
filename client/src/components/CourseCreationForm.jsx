@@ -197,15 +197,21 @@ const CourseCreationForm = () => {
   // Handle module content changes
   const handleContentChange = (moduleIndex, contentIndex, field, value) => {
     const updatedModules = [...modules];
+    
+    // Convert duration to number if the field is duration
+    if (field === 'duration') {
+      value = value === '' ? 0 : Number(value);
+    }
+    
     updatedModules[moduleIndex].content[contentIndex][field] = value;
     setModules(updatedModules);
   };
   
   // Add content to a module
-  const addContent = (moduleIndex) => {
+  const addContent = (moduleIndex, contentType = 'video') => {
     const updatedModules = [...modules];
     updatedModules[moduleIndex].content.push({
-      type: 'video',
+      type: contentType,
       title: '',
       description: '',
       url: '',
@@ -238,6 +244,30 @@ const CourseCreationForm = () => {
       // Validate modules
       if (modules.some(module => !module.title.trim())) {
         throw new Error('All modules must have a title');
+      }
+      
+      // Validate content items
+      for (let i = 0; i < modules.length; i++) {
+        const module = modules[i];
+        
+        // Check if module has at least one content item
+        if (!module.content || module.content.length === 0) {
+          throw new Error(`Module ${i + 1} (${module.title}) must have at least one content item`);
+        }
+        
+        // Check content items
+        for (let j = 0; j < module.content.length; j++) {
+          const content = module.content[j];
+          
+          if (!content.title.trim()) {
+            throw new Error(`Content item ${j + 1} in Module ${i + 1} (${module.title}) must have a title`);
+          }
+          
+          // Ensure duration is a number
+          if (typeof content.duration !== 'number') {
+            content.duration = Number(content.duration) || 0;
+          }
+        }
       }
       
       // Prepare form data with modules

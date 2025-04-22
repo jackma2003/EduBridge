@@ -3,17 +3,17 @@ import React, { useState } from 'react';
 const CourseContent = ({ course }) => {
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
 
-  // Handle video click - redirect to the video URL in a new tab
-  const handleVideoClick = (url, e) => {
-    e.stopPropagation(); // Prevent toggling the module when clicking the video
+  // Handle content click - redirect to the content URL in a new tab
+  const handleContentClick = (content, e) => {
+    e.stopPropagation(); // Prevent toggling the module when clicking the content
     
     // Check if it's a valid URL
-    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-      // Open video in a new tab
-      window.open(url, '_blank');
+    if (content.url && (content.url.startsWith('http://') || content.url.startsWith('https://'))) {
+      // Open content in a new tab
+      window.open(content.url, '_blank');
     } else {
       // If URL is not valid, show an alert
-      alert('Video URL is not available or invalid.');
+      alert(`${content.type.charAt(0).toUpperCase() + content.type.slice(1)} URL is not available or invalid.`);
     }
   };
 
@@ -60,10 +60,8 @@ const CourseContent = ({ course }) => {
                   {module.content?.map((content, contentIndex) => (
                     <li key={contentIndex} className="text-sm">
                       <div 
-                        className={`flex items-center p-2 rounded ${
-                          content.type === 'video' ? 'hover:bg-blue-50 cursor-pointer' : 'hover:bg-gray-50'
-                        }`}
-                        onClick={(e) => content.type === 'video' && handleVideoClick(content.url, e)}
+                        className="flex items-center p-2 rounded hover:bg-blue-50 cursor-pointer"
+                        onClick={(e) => handleContentClick(content, e)}
                       >
                         <div className="flex-shrink-0 mr-3">
                           {content.type === 'video' && (
@@ -89,7 +87,7 @@ const CourseContent = ({ course }) => {
                           )}
                         </div>
                         <div className="ml-2 flex-1">
-                          <span className={`font-medium ${content.type === 'video' ? 'text-blue-600' : ''}`}>
+                          <span className="font-medium text-blue-600">
                             {content.title}
                           </span>
                           {content.duration && (
@@ -99,14 +97,12 @@ const CourseContent = ({ course }) => {
                             <p className="text-xs text-gray-500 mt-1">{content.description}</p>
                           )}
                         </div>
-                        {content.type === 'video' && (
-                          <div className="flex-shrink-0 ml-2">
-                            <svg className="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                            </svg>
-                          </div>
-                        )}
+                        <div className="flex-shrink-0 ml-2">
+                          <svg className="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                          </svg>
+                        </div>
                       </div>
                     </li>
                   ))}

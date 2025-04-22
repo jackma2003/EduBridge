@@ -17,7 +17,7 @@ const CourseModules = ({
           Course Modules
         </h3>
         <p className="mt-1 text-sm text-gray-500">
-          Add modules to organize your course content.
+          Add modules to organize your course content. Each module can contain videos, documents, quizzes, and assignments.
         </p>
         
         <div className="mt-6 space-y-6">
@@ -30,7 +30,7 @@ const CourseModules = ({
               removeModule={() => removeModule(moduleIndex)}
               handleContentChange={(contentIndex, field, value) => 
                 handleContentChange(moduleIndex, contentIndex, field, value)}
-              addContent={() => addContent(moduleIndex)}
+              addContent={(contentType) => addContent(moduleIndex, contentType)}
               removeContent={(contentIndex) => removeContent(moduleIndex, contentIndex)}
             />
           ))}
