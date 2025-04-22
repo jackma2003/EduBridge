@@ -7,14 +7,44 @@ const CourseHeader = ({ course }) => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Get instructor initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "IN";
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Generate a background color based on the course title
+  const generateBgColor = (title) => {
+    const colors = [
+      'from-blue-500 to-indigo-700',
+      'from-purple-500 to-pink-600',
+      'from-green-500 to-teal-600',
+      'from-orange-400 to-red-600',
+      'from-cyan-500 to-blue-600'
+    ];
+    
+    // Simple hash function to pick a color consistently
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const bgGradient = generateBgColor(course.title);
+  const instructorInitials = getInitials(course.instructor?.name);
+
   return (
     <div className="bg-white shadow overflow-hidden rounded-lg mb-8">
-      <div className="relative h-64 bg-gray-200">
-        <img 
-          src={course.coverImage || "/default-course.jpg"} 
-          alt={course.title} 
-          className="w-full h-full object-cover"
-        />
+      <div className="relative h-64">
+        {/* Gradient background instead of image */}
+        <div className={`w-full h-full bg-gradient-to-br ${bgGradient}`}></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black opacity-60"></div>
         <div className="absolute bottom-0 left-0 p-6">
           <div className="flex space-x-2 mb-4">
@@ -46,11 +76,10 @@ const CourseHeader = ({ course }) => {
       <div className="bg-white p-6">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <img 
-              className="h-12 w-12 rounded-full object-cover"
-              src={course.instructor?.profilePicture || "/default-avatar.jpg"} 
-              alt={course.instructor?.name || 'Instructor'} 
-            />
+            {/* Initial-based avatar instead of image */}
+            <div className="h-12 w-12 rounded-full flex items-center justify-center text-white font-medium text-lg bg-gray-700">
+              {instructorInitials}
+            </div>
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-900">
