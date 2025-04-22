@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCourses, enrollCourse } from '../services/api';
+import { getCourses, enrollCourse, getProfile } from '../services/api';
 
 const ExploreCourses = () => {
   const navigate = useNavigate();
@@ -15,15 +15,42 @@ const ExploreCourses = () => {
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [enrollingCourseId, setEnrollingCourseId] = useState(null);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
 
   // Fetch courses on component mount
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch all courses
         const response = await getCourses();
         setCourses(response.data.courses);
         setFilteredCourses(response.data.courses);
+        
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        if (token) {
+          setIsLoggedIn(true);
+          
+          // Fetch user profile to get enrolled courses
+          try {
+            const profileResponse = await getProfile();
+            
+            // Extract enrolled course IDs
+            let enrolledIds = [];
+            
+            if (profileResponse.data.user.enrolledCourses) {
+              enrolledIds = profileResponse.data.user.enrolledCourses.map(course => 
+                typeof course === 'object' ? course._id : course
+              );
+            }
+            
+            setEnrolledCourseIds(enrolledIds);
+          } catch (profileErr) {
+            console.error('Error fetching user profile:', profileErr);
+          }
+        }
       } catch (err) {
         console.error('Error fetching courses:', err);
         setError('Failed to load courses. Please try again later.');
@@ -32,13 +59,7 @@ const ExploreCourses = () => {
       }
     };
 
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-    }
-
-    fetchCourses();
+    fetchData();
   }, []);
 
   // Filter courses when search term or filters change
@@ -74,6 +95,11 @@ const ExploreCourses = () => {
   // Get unique topics from all courses for the filter dropdown
   const uniqueTopics = [...new Set(courses.flatMap(course => course.topics))];
 
+  // Check if student is enrolled in a course
+  const isEnrolled = (courseId) => {
+    return enrolledCourseIds.includes(courseId);
+  };
+
   // Handle search input change
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -97,6 +123,33 @@ const ExploreCourses = () => {
     });
   };
 
+  // Render star rating based on course rating
+  const renderStarRating = (rating) => {
+    const ratingValue = parseFloat(rating) || 0;
+    const stars = [];
+    
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <svg 
+          key={i}
+          className={`h-4 w-4 ${i <= ratingValue ? 'text-yellow-400' : 'text-gray-300'}`} 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 20 20" 
+          fill="currentColor"
+        >
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      );
+    }
+    
+    return (
+      <div className="flex items-center">
+        <div className="flex mr-1">{stars}</div>
+        <span>{rating || '0.0'}</span>
+      </div>
+    );
+  };
+
   // Handle course enrollment
   const handleEnroll = async (courseId) => {
     try {
@@ -105,14 +158,26 @@ const ExploreCourses = () => {
         navigate('/login', { state: { redirectTo: `/courses/${courseId}` } });
         return;
       }
+      
+      // If already enrolled, just go to the course page
+      if (isEnrolled(courseId)) {
+        navigate(`/courses/${courseId}`);
+        return;
+      }
 
       setEnrollingCourseId(courseId);
       await enrollCourse(courseId);
+      
+      // Update enrolled courses list
+      setEnrolledCourseIds(prev => [...prev, courseId]);
+      
       // After successful enrollment, navigate to the course page
       navigate(`/courses/${courseId}`);
     } catch (err) {
       console.error('Error enrolling in course:', err);
       if (err.response && err.response.status === 400 && err.response.data.message === 'Already enrolled in this course') {
+        // Update enrolled courses list if the error is because they're already enrolled
+        setEnrolledCourseIds(prev => [...prev, courseId]);
         navigate(`/courses/${courseId}`);
       } else {
         setError('Failed to enroll in the course. Please try again.');
@@ -271,89 +336,99 @@ const ExploreCourses = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredCourses.map((course) => (
-              <div key={course._id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                <div className="h-48 bg-gray-200 relative">
-                  <img 
-                    src={course.coverImage || "/default-course.jpg"} 
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="p-5">
-                  <h3 className="text-lg font-medium text-gray-900 mb-1 truncate hover:text-blue-600">
-                    <Link to={`/courses/${course._id}`}>
-                      {course.title}
-                    </Link>
-                  </h3>
-                  
-                  <p className="text-sm text-gray-500 mb-2">
-                    {course.instructor?.name || 'Unknown Instructor'}
-                  </p>
-                  
-                  <div className="flex items-center text-sm text-gray-600 mb-3">
-                    <svg className="h-4 w-4 text-yellow-400 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {course.averageRating || '0.0'} ({course.ratings?.length || 0} ratings)
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {course.topics?.slice(0, 3).map((topic, index) => (
-                      <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                        {topic}
+            {filteredCourses.map((course) => {
+              const courseEnrolled = isEnrolled(course._id);
+              
+              return (
+                <div key={course._id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                  <div className="h-48 bg-gray-200 relative">
+                    <img 
+                      src={course.coverImage || "/default-course.jpg"} 
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
                       </span>
-                    ))}
-                    {course.topics?.length > 3 && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                        +{course.topics.length - 3} more
-                      </span>
-                    )}
+                    </div>
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {course.description?.substring(0, 150)}...
-                  </p>
-                  
-                  <div className="mt-auto">
-                    <button
-                      onClick={() => handleEnroll(course._id)}
-                      disabled={enrollingCourseId === course._id}
-                      className={`w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
-                        enrollingCourseId === course._id
-                          ? 'bg-blue-400'
-                          : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                      }`}
-                    >
-                      {enrollingCourseId === course._id ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Enrolling...
-                        </>
-                      ) : (
-                        'Enroll Now'
-                      )}
-                    </button>
+                  <div className="p-5">
+                    <h3 className="text-lg font-medium text-gray-900 mb-1 truncate hover:text-blue-600">
+                      <Link to={`/courses/${course._id}`}>
+                        {course.title}
+                      </Link>
+                    </h3>
                     
-                    <Link
-                      to={`/courses/${course._id}`}
-                      className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      View Details
-                    </Link>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {course.instructor?.name || 'Unknown Instructor'}
+                    </p>
+                    
+                    <div className="text-sm text-gray-600 mb-3">
+                      {renderStarRating(course.averageRating)}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {course.topics?.slice(0, 3).map((topic, index) => (
+                        <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                          {topic}
+                        </span>
+                      ))}
+                      {course.topics?.length > 3 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                          +{course.topics.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                      {course.description?.substring(0, 150)}...
+                    </p>
+                    
+                    <div className="mt-auto">
+                      {courseEnrolled ? (
+                        <button
+                          onClick={() => navigate(`/courses/${course._id}`)}
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                          Continue Learning
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleEnroll(course._id)}
+                          disabled={enrollingCourseId === course._id}
+                          className={`w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                            enrollingCourseId === course._id
+                              ? 'bg-blue-400'
+                              : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                          }`}
+                        >
+                          {enrollingCourseId === course._id ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Enrolling...
+                            </>
+                          ) : (
+                            'Enroll Now'
+                          )}
+                        </button>
+                      )}
+                      
+                      <Link
+                        to={`/courses/${course._id}`}
+                        className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      >
+                        View Details
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
