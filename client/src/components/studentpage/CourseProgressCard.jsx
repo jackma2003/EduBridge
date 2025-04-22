@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCourseProgress } from '../../services/api';
 
 const CourseProgressCard = ({ course }) => {
+  const navigate = useNavigate();
   const [progress, setProgress] = useState(course.progress || 0);
   const [nextContentLocation, setNextContentLocation] = useState({ courseId: course._id });
   const [loading, setLoading] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
   // Add a useEffect to refresh progress when the component mounts and listen for progress updates
   useEffect(() => {
@@ -24,6 +26,11 @@ const CourseProgressCard = ({ course }) => {
 
         // Extract completed content
         const completedContentIds = progressResponse.data.completedContent.map(item => item.contentId);
+        
+        // If there are any completed content items, we know the user has started the course
+        if (completedContentIds.length > 0) {
+          setHasStarted(true);
+        }
         
         // Find the next uncompleted content
         let nextModuleIndex = -1;
@@ -93,6 +100,27 @@ const CourseProgressCard = ({ course }) => {
     };
   }, [course._id, course.modules]);
 
+  // Handle continue button click with navigation check
+  const handleContinueClick = (e) => {
+    e.preventDefault();
+    
+    // If we don't have valid module/content indices but the user has started the course
+    if ((nextContentLocation.moduleIndex === undefined || nextContentLocation.contentIndex === undefined) && hasStarted) {
+      // Navigate to course overview page first
+      navigate(`/courses/${course._id}`);
+      return;
+    }
+    
+    // Default navigation to the specific content
+    navigate(`/courses/${course._id}/modules/${nextContentLocation.moduleIndex || 0}/content/${nextContentLocation.contentIndex || 0}`);
+  };
+
+  // Handle start button click
+  const handleStartClick = (e) => {
+    e.preventDefault();
+    navigate(`/courses/${course._id}`);
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center">
@@ -101,6 +129,10 @@ const CourseProgressCard = ({ course }) => {
             className="h-16 w-16 rounded object-cover"
             src={course.coverImage || "/default-course.jpg"} 
             alt={course.title} 
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/160?text=Course';
+            }}
           />
         </div>
         <div className="ml-4 flex-1">
@@ -120,20 +152,21 @@ const CourseProgressCard = ({ course }) => {
           </div>
         </div>
         <div className="ml-4">
-          {nextContentLocation.moduleIndex !== undefined ? (
-            <Link
-              to={`/courses/${nextContentLocation.courseId}/modules/${nextContentLocation.moduleIndex}/content/${nextContentLocation.contentIndex}`}
+          {/* Use button with onClick handler instead of Link to better handle navigation logic */}
+          {(nextContentLocation.moduleIndex !== undefined || hasStarted) ? (
+            <button
+              onClick={handleContinueClick}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Continue
-            </Link>
+            </button>
           ) : (
-            <Link
-              to={`/courses/${course._id}`}
+            <button
+              onClick={handleStartClick}
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Start
-            </Link>
+            </button>
           )}
         </div>
       </div>
