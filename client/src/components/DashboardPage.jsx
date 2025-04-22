@@ -15,6 +15,36 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Get initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "ST";
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Generate a background color based on the course title
+  const generateBgColor = (title) => {
+    const colors = [
+      'from-blue-500 to-indigo-700',
+      'from-purple-500 to-pink-600',
+      'from-green-500 to-teal-600',
+      'from-orange-400 to-red-600',
+      'from-cyan-500 to-blue-600'
+    ];
+    
+    // Simple hash function to pick a color consistently
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
@@ -163,6 +193,8 @@ const StudentDashboard = () => {
     );
   }
 
+  const studentInitials = getInitials(student?.name);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header/Navigation */}
@@ -185,24 +217,23 @@ const StudentDashboard = () => {
                 <Link to="/courses" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                   Browse Courses
                 </Link>
-                <Link to="/my-learning" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  My Learning
-                </Link>
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               <div className="ml-3 relative">
                 <div className="flex items-center">
-                  <img 
-                    className="h-8 w-8 rounded-full object-cover"
-                    src={student?.profilePicture ? student.profilePicture : "/default-avatar.jpg"} 
-                    alt="Profile" 
-                  />
+                  {/* Initials-based avatar instead of profile picture */}
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-white font-medium text-sm bg-gray-700">
+                    {studentInitials}
+                  </div>
                   <span className="ml-2 text-sm font-medium text-gray-700">{student?.name}</span>
                   <button
                     onClick={handleLogout}
-                    className="ml-4 px-3 py-1 text-sm text-gray-700 hover:text-gray-900"
+                    className="ml-4 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition duration-150 ease-in-out flex items-center"
                   >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
                     Logout
                   </button>
                 </div>
@@ -220,11 +251,10 @@ const StudentDashboard = () => {
             <div className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <img
-                    className="h-16 w-16 rounded-full object-cover"
-                    src={student?.profilePicture ? student.profilePicture : "/default-avatar.jpg"}
-                    alt="Profile"
-                  />
+                  {/* Initials-based avatar instead of profile picture */}
+                  <div className="h-16 w-16 rounded-full flex items-center justify-center text-white font-medium text-xl bg-gray-700">
+                    {studentInitials}
+                  </div>
                 </div>
                 <div className="ml-4">
                   <h2 className="text-2xl font-bold text-gray-900">Welcome back, {student?.name}!</h2>
@@ -300,38 +330,46 @@ const StudentDashboard = () => {
                 <p className="text-gray-500 text-center">No recommendations available at this time.</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {recommendedCourses.map((course) => (
-                    <div key={course._id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                      <div className="h-40 bg-gray-200 relative">
-                        <img 
-                          src={course.coverImage || "/default-course-cover.jpg"} 
-                          alt={course.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                          <span className="text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded">
-                            {course.level && course.level.charAt(0).toUpperCase() + course.level.slice(1)}
-                          </span>
+                  {recommendedCourses.map((course) => {
+                    const bgGradient = generateBgColor(course.title);
+                    const instructorInitials = getInitials(course.instructor?.name);
+                    
+                    return (
+                      <div key={course._id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                        <div className="h-40 relative">
+                          {/* Gradient background instead of image */}
+                          <div className={`w-full h-full bg-gradient-to-br ${bgGradient}`}></div>
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <span className="text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded">
+                              {course.level && course.level.charAt(0).toUpperCase() + course.level.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center mb-2">
+                            {/* Initials-based avatar instead of profile picture */}
+                            <div className="h-6 w-6 rounded-full flex items-center justify-center text-white font-medium text-xs bg-gray-700 mr-2">
+                              {instructorInitials}
+                            </div>
+                            <p className="text-sm text-gray-600">{course.instructor?.name || 'Unknown Instructor'}</p>
+                          </div>
+                          <h4 className="font-medium text-gray-900 text-lg mb-1 truncate">{course.title}</h4>
+                          <div className="flex items-center text-sm text-gray-500 mb-4">
+                            <svg className="h-4 w-4 text-yellow-400 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            {course.averageRating || '0.0'} ({course.ratings?.length || 0} ratings)
+                          </div>
+                          <Link
+                            to={`/courses/${course._id}`}
+                            className="block w-full text-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          >
+                            View Course
+                          </Link>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h4 className="font-medium text-gray-900 text-lg mb-1 truncate">{course.title}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{course.instructor?.name || 'Unknown Instructor'}</p>
-                        <div className="flex items-center text-sm text-gray-500 mb-4">
-                          <svg className="h-4 w-4 text-yellow-400 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                          {course.averageRating || '0.0'} ({course.ratings?.length || 0} ratings)
-                        </div>
-                        <Link
-                          to={`/courses/${course._id}`}
-                          className="block w-full text-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          View Course
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               <div className="mt-6 text-center">

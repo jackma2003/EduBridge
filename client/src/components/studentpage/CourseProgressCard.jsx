@@ -9,6 +9,36 @@ const CourseProgressCard = ({ course }) => {
   const [loading, setLoading] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
+  // Generate a background color based on the course title
+  const generateBgColor = (title) => {
+    const colors = [
+      'from-blue-500 to-indigo-700',
+      'from-purple-500 to-pink-600',
+      'from-green-500 to-teal-600',
+      'from-orange-400 to-red-600',
+      'from-cyan-500 to-blue-600'
+    ];
+    
+    // Simple hash function to pick a color consistently
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Get instructor initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "IN";
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   // Add a useEffect to refresh progress when the component mounts and listen for progress updates
   useEffect(() => {
     const fetchCurrentProgress = async () => {
@@ -121,23 +151,31 @@ const CourseProgressCard = ({ course }) => {
     navigate(`/courses/${course._id}`);
   };
 
+  const bgGradient = generateBgColor(course.title);
+  const instructorInitials = getInitials(course.instructor?.name);
+
   return (
     <div className="p-6">
       <div className="flex items-center">
         <div className="flex-shrink-0">
-          <img 
-            className="h-16 w-16 rounded object-cover"
-            src={course.coverImage || "/default-course.jpg"} 
-            alt={course.title} 
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/160?text=Course';
-            }}
-          />
+          {/* Gradient background instead of image */}
+          <div className={`h-16 w-16 rounded bg-gradient-to-br ${bgGradient} flex items-center justify-center`}>
+            <span className="text-white font-medium text-xs">
+              {course.title.substring(0, 2).toUpperCase()}
+            </span>
+          </div>
         </div>
         <div className="ml-4 flex-1">
-          <h4 className="text-lg font-medium text-gray-900">{course.title}</h4>
-          <p className="text-sm text-gray-500">{course.instructor?.name || 'Unknown Instructor'}</p>
+          <div className="flex items-center">
+            <h4 className="text-lg font-medium text-gray-900">{course.title}</h4>
+            {/* Instructor avatar */}
+            <div className="ml-2 flex items-center">
+              <div className="h-6 w-6 rounded-full flex items-center justify-center text-white font-medium text-xs bg-gray-700 mr-1">
+                {instructorInitials}
+              </div>
+              <p className="text-sm text-gray-500">{course.instructor?.name || 'Unknown Instructor'}</p>
+            </div>
+          </div>
           
           <div className="mt-2">
             <div className="flex items-center">
