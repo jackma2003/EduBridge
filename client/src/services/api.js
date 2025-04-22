@@ -110,6 +110,18 @@ export const markContentCompleted = (courseId, moduleIndex, contentId) =>
 export const resetContentProgress = (courseId, moduleIndex, contentId) => 
   API.put(`/courses/${courseId}/modules/${moduleIndex}/content/${contentId}/reset`);
 
+// Learning Goals API functions
+export const getLearningGoals = () => API.get('/users/learning-goals');
+export const createLearningGoal = (goalData) => API.post('/users/learning-goals', goalData);
+export const updateLearningGoal = (goalId, goalData) => API.put(`/users/learning-goals/${goalId}`, goalData);
+export const deleteLearningGoal = (goalId) => API.delete(`/users/learning-goals/${goalId}`);
+
+// Study Calendar API functions
+export const getStudySessions = () => API.get('/users/study-sessions');
+export const createStudySession = (sessionData) => API.post('/users/study-sessions', sessionData);
+export const updateStudySession = (sessionId, sessionData) => API.put(`/users/study-sessions/${sessionId}`, sessionData);
+export const deleteStudySession = (sessionId) => API.delete(`/users/study-sessions/${sessionId}`);
+
 // Additional helper functions for User management
 export const getCurrentUser = () => getProfile();
 export const updateUserProfile = (userData) => updateProfile(userData);

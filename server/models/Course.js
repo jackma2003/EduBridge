@@ -1,8 +1,5 @@
 // models/Course.js - Course model for EduBridge
 
-// Update to the Course.js model file
-// Add completedContent array to the enrolledStudents schema
-
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({

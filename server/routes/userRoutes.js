@@ -7,6 +7,8 @@ const Course = require('../models/Course');
 const TeacherProfile = require('../models/TeacherProfile');
 const jwt = require('jsonwebtoken');
 const { protect, authorize } = require('../middleware/auth');
+const LearningGoal = require('../models/LearningGoal');
+const StudySession = require('../models/StudySession'); 
 
 // Helper function to generate JWT
 const generateToken = (id) => {
@@ -638,6 +640,217 @@ router.post('/init-admin', async (req, res, next) => {
     });
   } catch (error) {
     console.error('init-admin error:', error); // Add this for debugging
+    next(error);
+  }
+});
+
+
+// Learning Goals Routes
+router.get('/learning-goals', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+    
+    // Find goals for this user
+    const goals = await LearningGoal.find({ user: req.user.id });
+    
+    res.json({
+      status: 'success',
+      goals
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/learning-goals', protect, async (req, res, next) => {
+  try {
+    const { text, completed } = req.body;
+    
+    const goal = await LearningGoal.create({
+      user: req.user.id,
+      text,
+      completed: completed || false
+    });
+    
+    res.status(201).json({
+      status: 'success',
+      goal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/learning-goals/:id', protect, async (req, res, next) => {
+  try {
+    const goal = await LearningGoal.findById(req.params.id);
+    
+    if (!goal) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Goal not found'
+      });
+    }
+    
+    // Ensure user owns this goal
+    if (goal.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to update this goal'
+      });
+    }
+    
+    // Update goal
+    const updatedGoal = await LearningGoal.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({
+      status: 'success',
+      goal: updatedGoal
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/learning-goals/:id', protect, async (req, res, next) => {
+  try {
+    const goal = await LearningGoal.findById(req.params.id);
+    
+    if (!goal) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Goal not found'
+      });
+    }
+    
+    // Ensure user owns this goal
+    if (goal.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to delete this goal'
+      });
+    }
+    
+    await goal.deleteOne(); // Using deleteOne instead of remove() as remove() is deprecated
+    
+    res.json({
+      status: 'success',
+      message: 'Goal deleted'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Study Sessions Routes
+router.get('/study-sessions', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+    
+    // Find sessions for this user
+    const sessions = await StudySession.find({ user: req.user.id });
+    
+    res.json({
+      status: 'success',
+      sessions
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/study-sessions', protect, async (req, res, next) => {
+  try {
+    const { day, subject, time, completed } = req.body;
+    
+    const session = await StudySession.create({
+      user: req.user.id,
+      day,
+      subject,
+      time,
+      completed: completed || false
+    });
+    
+    res.status(201).json({
+      status: 'success',
+      session
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/study-sessions/:id', protect, async (req, res, next) => {
+  try {
+    const session = await StudySession.findById(req.params.id);
+    
+    if (!session) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Study session not found'
+      });
+    }
+    
+    // Ensure user owns this session
+    if (session.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to update this session'
+      });
+    }
+    
+    // Update session
+    const updatedSession = await StudySession.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    res.json({
+      status: 'success',
+      session: updatedSession
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/study-sessions/:id', protect, async (req, res, next) => {
+  try {
+    const session = await StudySession.findById(req.params.id);
+    
+    if (!session) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Study session not found'
+      });
+    }
+    
+    // Ensure user owns this session
+    if (session.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to delete this session'
+      });
+    }
+    
+    await session.deleteOne(); // Using deleteOne instead of remove() as remove() is deprecated
+    
+    res.json({
+      status: 'success',
+      message: 'Study session deleted'
+    });
+  } catch (error) {
     next(error);
   }
 });

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, getCourses, getCourse, getCourseProgress } from '../services/api';
+import { getProfile, getCourses, getCourse } from '../services/api';
 
 // Import components
 import CourseProgressCard from '../components/studentpage/CourseProgressCard';
-import StatsCard from '../components/studentpage/StatsCard';
-import AssignmentItem from '../components/studentpage/AssignmentItem';
+import LearningGoals from '../components/studentpage/LearningGoals';
+import StudyCalendar from '../components/studentpage/StudyCalendar';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -14,174 +14,6 @@ const StudentDashboard = () => {
   const [recommendedCourses, setRecommendedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    coursesCompleted: 0,
-    assignmentsDue: 0,
-    totalHoursLearned: 0,
-    averageGrade: 0
-  });
-  const [upcomingAssignments, setUpcomingAssignments] = useState([]);
-
-  // Function to fetch latest course progress
-  const fetchCourseProgress = async (courseId) => {
-    try {
-      const progressResponse = await getCourseProgress(courseId);
-      return progressResponse.data.completedContent.map(item => item.contentId);
-    } catch (error) {
-      console.error(`Error fetching progress for course ${courseId}:`, error);
-      return [];
-    }
-  };
-
-  // Function to calculate overall course progress
-  const calculateCourseProgress = (course, completedContentIds) => {
-    let totalContentCount = 0;
-    let completedCount = 0;
-    
-    course.modules?.forEach(module => {
-      if (module.content && Array.isArray(module.content)) {
-        totalContentCount += module.content.length;
-        module.content.forEach(content => {
-          if (completedContentIds.includes(content._id)) {
-            completedCount++;
-          }
-        });
-      }
-    });
-    
-    return totalContentCount > 0 
-      ? Math.round((completedCount / totalContentCount) * 100) 
-      : 0;
-  };
-
-  // Handler for content progress updates
-  const handleContentProgressUpdate = async (event) => {
-    const { courseId, contentId, completed } = event.detail;
-    
-    // Find the course in enrolledCourses
-    const courseIndex = enrolledCourses.findIndex(course => course._id === courseId);
-    if (courseIndex === -1) return;
-    
-    // Get the current course
-    const course = { ...enrolledCourses[courseIndex] };
-    
-    // Create a copy of completedContent array
-    const completedContentIds = [...(course.completedContent || [])];
-    
-    if (completed) {
-      // Add contentId to completedContent if not already there
-      if (!completedContentIds.includes(contentId)) {
-        completedContentIds.push(contentId);
-      }
-    } else {
-      // Remove contentId from completedContent
-      const contentIndex = completedContentIds.indexOf(contentId);
-      if (contentIndex !== -1) {
-        completedContentIds.splice(contentIndex, 1);
-      }
-    }
-    
-    // Calculate new progress percentage
-    const progressPercentage = calculateCourseProgress(course, completedContentIds);
-    
-    // Create updated course object
-    const updatedCourse = {
-      ...course,
-      progress: progressPercentage,
-      completedContent: completedContentIds
-    };
-    
-    // Update enrolledCourses state
-    const updatedCourses = [...enrolledCourses];
-    updatedCourses[courseIndex] = updatedCourse;
-    setEnrolledCourses(updatedCourses);
-    
-    // Update stats if a course has been completed or uncompleted
-    if (progressPercentage === 100 && course.progress !== 100) {
-      // Course was just completed
-      setStats(prevStats => ({
-        ...prevStats,
-        coursesCompleted: prevStats.coursesCompleted + 1
-      }));
-    } else if (progressPercentage < 100 && course.progress === 100) {
-      // Course was previously completed but now is not
-      setStats(prevStats => ({
-        ...prevStats,
-        coursesCompleted: Math.max(0, prevStats.coursesCompleted - 1)
-      }));
-    }
-    
-    // Update total hours learned
-    updateTotalHoursLearned(updatedCourses);
-    
-    // Update upcoming assignments
-    updateUpcomingAssignments(updatedCourses);
-  };
-
-  // Function to update total hours learned
-  const updateTotalHoursLearned = (courses) => {
-    const totalHours = courses.reduce((total, course) => {
-      let courseHours = 0;
-      
-      course.modules?.forEach(module => {
-        module.content?.forEach(content => {
-          if (course.completedContent.includes(content._id) && content.duration) {
-            courseHours += content.duration;
-          }
-        });
-      });
-      
-      return total + (courseHours / 60); // Convert minutes to hours
-    }, 0);
-    
-    setStats(prevStats => ({
-      ...prevStats,
-      totalHoursLearned: totalHours.toFixed(1)
-    }));
-  };
-
-  // Function to update upcoming assignments
-  const updateUpcomingAssignments = (courses) => {
-    const assignmentsList = [];
-    
-    courses.forEach(course => {
-      course.modules?.forEach((module, moduleIndex) => {
-        module.content?.forEach((content, contentIndex) => {
-          if (
-            (content.type === 'assignment' || content.type === 'quiz') && 
-            !course.completedContent.includes(content._id)
-          ) {
-            // Calculate due date (for demo, set it to a few days in the future)
-            const daysToAdd = Math.floor(Math.random() * 14) + 1; // Random 1-14 days
-            const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + daysToAdd);
-            
-            assignmentsList.push({
-              _id: content._id,
-              title: content.title,
-              type: content.type,
-              courseId: course._id,
-              courseName: course.title,
-              moduleIndex,
-              contentIndex,
-              dueDate,
-              daysRemaining: daysToAdd
-            });
-          }
-        });
-      });
-    });
-    
-    // Sort by due date (ascending)
-    assignmentsList.sort((a, b) => a.dueDate - b.dueDate);
-    setUpcomingAssignments(assignmentsList);
-    
-    // Update assignmentsDue stat
-    setStats(prevStats => ({
-      ...prevStats,
-      assignmentsDue: assignmentsList.length
-    }));
-  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -263,37 +95,17 @@ const StudentDashboard = () => {
           }
         }
         
-        // Fetch progress data for each enrolled course
-        const coursesWithProgress = await Promise.all(
-          enrolledCoursesWithDetails.map(async (course) => {
-            try {
-              // Get the completed content for this course
-              const completedContentIds = await fetchCourseProgress(course._id);
-              
-              // Calculate progress percentage
-              const progressPercentage = calculateCourseProgress(course, completedContentIds);
-              
-              // Return course with progress info
-              return {
-                ...course,
-                progress: progressPercentage,
-                completedContent: completedContentIds
-              };
-            } catch (error) {
-              console.error(`Error fetching progress for course ${course._id}:`, error);
-              return {
-                ...course,
-                progress: 0,
-                completedContent: []
-              };
-            }
-          })
-        );
+        // Add mock progress to each course for demo purposes
+        const coursesWithProgress = enrolledCoursesWithDetails.map(course => {
+          // Generate a random progress percentage for demo
+          const progress = Math.floor(Math.random() * 100);
+          return {
+            ...course,
+            progress
+          };
+        });
         
         setEnrolledCourses(coursesWithProgress);
-        
-        // Extract upcoming assignments
-        updateUpcomingAssignments(coursesWithProgress);
         
         // Get recommended courses - filter out courses the student is already enrolled in
         const enrolledIds = coursesWithProgress.map(course => course._id);
@@ -302,44 +114,6 @@ const StudentDashboard = () => {
           .slice(0, 3); // Get top 3 recommendations
         
         setRecommendedCourses(recommended);
-        
-        // Calculate dashboard statistics
-        // Completed courses (100% progress)
-        const completed = coursesWithProgress.filter(course => course.progress === 100).length;
-        
-        // Total learning hours
-        const totalHours = coursesWithProgress.reduce((total, course) => {
-          let courseHours = 0;
-          
-          course.modules?.forEach(module => {
-            module.content?.forEach(content => {
-              if (course.completedContent.includes(content._id) && content.duration) {
-                courseHours += content.duration;
-              }
-            });
-          });
-          
-          return total + (courseHours / 60); // Convert minutes to hours
-        }, 0);
-        
-        // Assignment count
-        const dueAssignments = upcomingAssignments.length;
-        
-        // Average grade if available
-        let avgGrade = 0;
-        const coursesWithGrades = coursesWithProgress.filter(course => course.grade);
-        
-        if (coursesWithGrades.length > 0) {
-          avgGrade = (coursesWithGrades.reduce((total, course) => 
-            total + (course.grade || 0), 0) / coursesWithGrades.length).toFixed(1);
-        }
-        
-        setStats({
-          coursesCompleted: completed,
-          assignmentsDue: dueAssignments,
-          totalHoursLearned: totalHours.toFixed(1),
-          averageGrade: avgGrade
-        });
         
       } catch (err) {
         console.error(err);
@@ -350,14 +124,6 @@ const StudentDashboard = () => {
     };
 
     fetchStudentData();
-
-    // Set up event listener for progress updates
-    window.addEventListener('contentProgressUpdated', handleContentProgressUpdate);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener('contentProgressUpdated', handleContentProgressUpdate);
-    };
   }, [navigate]);
 
   // Handle logout
@@ -481,57 +247,6 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            {/* Courses Completed */}
-            <StatsCard 
-              title="Courses Completed"
-              value={stats.coursesCompleted}
-              icon={
-                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-              bgColor="bg-green-500"
-            />
-
-            {/* Assignments Due */}
-            <StatsCard
-              title="Assignments Due"
-              value={stats.assignmentsDue}
-              icon={
-                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-              bgColor="bg-yellow-500"
-            />
-
-            {/* Total Hours Learned */}
-            <StatsCard
-              title="Hours Learned"
-              value={stats.totalHoursLearned}
-              icon={
-                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-              bgColor="bg-blue-500"
-            />
-
-            {/* Average Grade */}
-            <StatsCard
-              title="Average Grade"
-              value={stats.averageGrade > 0 ? stats.averageGrade : 'N/A'}
-              icon={
-                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              }
-              bgColor="bg-purple-500"
-            />
-          </div>
-
           {/* Continue Learning Section */}
           <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
             <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
@@ -563,36 +278,14 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          {/* Upcoming Assignments Section */}
-          <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Upcoming Assignments
-              </h3>
-            </div>
-            <div className="bg-white">
-              {upcomingAssignments.length === 0 ? (
-                <div className="p-6 text-center">
-                  <p className="text-gray-500">You have no upcoming assignments.</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-gray-200">
-                  {upcomingAssignments.slice(0, 5).map((assignment) => (
-                    <AssignmentItem
-                      key={assignment._id}
-                      assignment={assignment}
-                    />
-                  ))}
-                  {upcomingAssignments.length > 5 && (
-                    <div className="p-4 text-center">
-                      <Link to="/my-learning/assignments" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                        View all {upcomingAssignments.length} assignments
-                      </Link>
-                    </div>
-                  )}
-                </ul>
-              )}
-            </div>
+          {/* New Learning Goals Component */}
+          <div className="mb-8">
+            <LearningGoals />
+          </div>
+
+          {/* New Study Calendar Component */}
+          <div className="mb-8">
+            <StudyCalendar />
           </div>
 
           {/* Recommended Courses Section */}
