@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getProfile, getCourses, getCourse } from '../services/api';
+import { getProfile, getCourses, getCourse, getCourseProgress } from '../services/api';
+
+// Import components
+import CourseProgressCard from '../components/studentpage/CourseProgressCard';
+import StatsCard from '../components/studentpage/StatsCard';
+import AssignmentItem from '../components/studentpage/AssignmentItem';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +20,168 @@ const StudentDashboard = () => {
     totalHoursLearned: 0,
     averageGrade: 0
   });
+  const [upcomingAssignments, setUpcomingAssignments] = useState([]);
+
+  // Function to fetch latest course progress
+  const fetchCourseProgress = async (courseId) => {
+    try {
+      const progressResponse = await getCourseProgress(courseId);
+      return progressResponse.data.completedContent.map(item => item.contentId);
+    } catch (error) {
+      console.error(`Error fetching progress for course ${courseId}:`, error);
+      return [];
+    }
+  };
+
+  // Function to calculate overall course progress
+  const calculateCourseProgress = (course, completedContentIds) => {
+    let totalContentCount = 0;
+    let completedCount = 0;
+    
+    course.modules?.forEach(module => {
+      if (module.content && Array.isArray(module.content)) {
+        totalContentCount += module.content.length;
+        module.content.forEach(content => {
+          if (completedContentIds.includes(content._id)) {
+            completedCount++;
+          }
+        });
+      }
+    });
+    
+    return totalContentCount > 0 
+      ? Math.round((completedCount / totalContentCount) * 100) 
+      : 0;
+  };
+
+  // Handler for content progress updates
+  const handleContentProgressUpdate = async (event) => {
+    const { courseId, contentId, completed } = event.detail;
+    
+    // Find the course in enrolledCourses
+    const courseIndex = enrolledCourses.findIndex(course => course._id === courseId);
+    if (courseIndex === -1) return;
+    
+    // Get the current course
+    const course = { ...enrolledCourses[courseIndex] };
+    
+    // Create a copy of completedContent array
+    const completedContentIds = [...(course.completedContent || [])];
+    
+    if (completed) {
+      // Add contentId to completedContent if not already there
+      if (!completedContentIds.includes(contentId)) {
+        completedContentIds.push(contentId);
+      }
+    } else {
+      // Remove contentId from completedContent
+      const contentIndex = completedContentIds.indexOf(contentId);
+      if (contentIndex !== -1) {
+        completedContentIds.splice(contentIndex, 1);
+      }
+    }
+    
+    // Calculate new progress percentage
+    const progressPercentage = calculateCourseProgress(course, completedContentIds);
+    
+    // Create updated course object
+    const updatedCourse = {
+      ...course,
+      progress: progressPercentage,
+      completedContent: completedContentIds
+    };
+    
+    // Update enrolledCourses state
+    const updatedCourses = [...enrolledCourses];
+    updatedCourses[courseIndex] = updatedCourse;
+    setEnrolledCourses(updatedCourses);
+    
+    // Update stats if a course has been completed or uncompleted
+    if (progressPercentage === 100 && course.progress !== 100) {
+      // Course was just completed
+      setStats(prevStats => ({
+        ...prevStats,
+        coursesCompleted: prevStats.coursesCompleted + 1
+      }));
+    } else if (progressPercentage < 100 && course.progress === 100) {
+      // Course was previously completed but now is not
+      setStats(prevStats => ({
+        ...prevStats,
+        coursesCompleted: Math.max(0, prevStats.coursesCompleted - 1)
+      }));
+    }
+    
+    // Update total hours learned
+    updateTotalHoursLearned(updatedCourses);
+    
+    // Update upcoming assignments
+    updateUpcomingAssignments(updatedCourses);
+  };
+
+  // Function to update total hours learned
+  const updateTotalHoursLearned = (courses) => {
+    const totalHours = courses.reduce((total, course) => {
+      let courseHours = 0;
+      
+      course.modules?.forEach(module => {
+        module.content?.forEach(content => {
+          if (course.completedContent.includes(content._id) && content.duration) {
+            courseHours += content.duration;
+          }
+        });
+      });
+      
+      return total + (courseHours / 60); // Convert minutes to hours
+    }, 0);
+    
+    setStats(prevStats => ({
+      ...prevStats,
+      totalHoursLearned: totalHours.toFixed(1)
+    }));
+  };
+
+  // Function to update upcoming assignments
+  const updateUpcomingAssignments = (courses) => {
+    const assignmentsList = [];
+    
+    courses.forEach(course => {
+      course.modules?.forEach((module, moduleIndex) => {
+        module.content?.forEach((content, contentIndex) => {
+          if (
+            (content.type === 'assignment' || content.type === 'quiz') && 
+            !course.completedContent.includes(content._id)
+          ) {
+            // Calculate due date (for demo, set it to a few days in the future)
+            const daysToAdd = Math.floor(Math.random() * 14) + 1; // Random 1-14 days
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + daysToAdd);
+            
+            assignmentsList.push({
+              _id: content._id,
+              title: content.title,
+              type: content.type,
+              courseId: course._id,
+              courseName: course.title,
+              moduleIndex,
+              contentIndex,
+              dueDate,
+              daysRemaining: daysToAdd
+            });
+          }
+        });
+      });
+    });
+    
+    // Sort by due date (ascending)
+    assignmentsList.sort((a, b) => a.dueDate - b.dueDate);
+    setUpcomingAssignments(assignmentsList);
+    
+    // Update assignmentsDue stat
+    setStats(prevStats => ({
+      ...prevStats,
+      assignmentsDue: assignmentsList.length
+    }));
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -54,7 +221,7 @@ const StudentDashboard = () => {
         
         setStudent(profileResponse.data.user);
         
-        // Get enrolled courses - FIX HERE
+        // Get enrolled courses
         const enrolledCourseIds = profileResponse.data.user.enrolledCourses || [];
         
         // Get all courses first
@@ -96,10 +263,40 @@ const StudentDashboard = () => {
           }
         }
         
-        setEnrolledCourses(enrolledCoursesWithDetails);
+        // Fetch progress data for each enrolled course
+        const coursesWithProgress = await Promise.all(
+          enrolledCoursesWithDetails.map(async (course) => {
+            try {
+              // Get the completed content for this course
+              const completedContentIds = await fetchCourseProgress(course._id);
+              
+              // Calculate progress percentage
+              const progressPercentage = calculateCourseProgress(course, completedContentIds);
+              
+              // Return course with progress info
+              return {
+                ...course,
+                progress: progressPercentage,
+                completedContent: completedContentIds
+              };
+            } catch (error) {
+              console.error(`Error fetching progress for course ${course._id}:`, error);
+              return {
+                ...course,
+                progress: 0,
+                completedContent: []
+              };
+            }
+          })
+        );
+        
+        setEnrolledCourses(coursesWithProgress);
+        
+        // Extract upcoming assignments
+        updateUpcomingAssignments(coursesWithProgress);
         
         // Get recommended courses - filter out courses the student is already enrolled in
-        const enrolledIds = enrolledCoursesWithDetails.map(course => course._id);
+        const enrolledIds = coursesWithProgress.map(course => course._id);
         const recommended = allCourses
           .filter(course => !enrolledIds.includes(course._id))
           .slice(0, 3); // Get top 3 recommendations
@@ -107,32 +304,30 @@ const StudentDashboard = () => {
         setRecommendedCourses(recommended);
         
         // Calculate dashboard statistics
-        const completed = enrolledCoursesWithDetails.filter(course => course.progress === 100).length;
-        const totalHours = enrolledCoursesWithDetails.reduce((total, course) => {
-          // Calculate total hours based on course modules and content
-          const moduleHours = course.modules?.reduce((moduleTotal, module) => {
-            return moduleTotal + (module.content?.reduce((contentTotal, content) => {
-              return contentTotal + (content.duration || 0);
-            }, 0) || 0);
-          }, 0) || 0;
+        // Completed courses (100% progress)
+        const completed = coursesWithProgress.filter(course => course.progress === 100).length;
+        
+        // Total learning hours
+        const totalHours = coursesWithProgress.reduce((total, course) => {
+          let courseHours = 0;
           
-          return total + moduleHours / 60; // Convert minutes to hours
+          course.modules?.forEach(module => {
+            module.content?.forEach(content => {
+              if (course.completedContent.includes(content._id) && content.duration) {
+                courseHours += content.duration;
+              }
+            });
+          });
+          
+          return total + (courseHours / 60); // Convert minutes to hours
         }, 0);
         
-        // Count upcoming assignments
-        const dueAssignments = enrolledCoursesWithDetails.reduce((total, course) => {
-          const assignments = course.modules?.reduce((moduleTotal, module) => {
-            return moduleTotal + (module.content?.filter(content => 
-              content.type === 'assignment' && !content.completed
-            ).length || 0);
-          }, 0) || 0;
-          
-          return total + assignments;
-        }, 0);
+        // Assignment count
+        const dueAssignments = upcomingAssignments.length;
         
-        // Calculate average grade if available
+        // Average grade if available
         let avgGrade = 0;
-        const coursesWithGrades = enrolledCoursesWithDetails.filter(course => course.grade);
+        const coursesWithGrades = coursesWithProgress.filter(course => course.grade);
         
         if (coursesWithGrades.length > 0) {
           avgGrade = (coursesWithGrades.reduce((total, course) => 
@@ -155,6 +350,14 @@ const StudentDashboard = () => {
     };
 
     fetchStudentData();
+
+    // Set up event listener for progress updates
+    window.addEventListener('contentProgressUpdated', handleContentProgressUpdate);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('contentProgressUpdated', handleContentProgressUpdate);
+    };
   }, [navigate]);
 
   // Handle logout
@@ -281,98 +484,52 @@ const StudentDashboard = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
             {/* Courses Completed */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Courses Completed
-                      </dt>
-                      <dd>
-                        <div className="text-lg font-medium text-gray-900">{stats.coursesCompleted}</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StatsCard 
+              title="Courses Completed"
+              value={stats.coursesCompleted}
+              icon={
+                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              bgColor="bg-green-500"
+            />
 
             {/* Assignments Due */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Assignments Due
-                      </dt>
-                      <dd>
-                        <div className="text-lg font-medium text-gray-900">{stats.assignmentsDue}</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Assignments Due"
+              value={stats.assignmentsDue}
+              icon={
+                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              bgColor="bg-yellow-500"
+            />
 
             {/* Total Hours Learned */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Hours Learned
-                      </dt>
-                      <dd>
-                        <div className="text-lg font-medium text-gray-900">{stats.totalHoursLearned}</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Hours Learned"
+              value={stats.totalHoursLearned}
+              icon={
+                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              }
+              bgColor="bg-blue-500"
+            />
 
             {/* Average Grade */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-purple-500 rounded-md p-3">
-                    <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Average Grade
-                      </dt>
-                      <dd>
-                        <div className="text-lg font-medium text-gray-900">
-                          {stats.averageGrade > 0 ? stats.averageGrade : 'N/A'}
-                        </div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <StatsCard
+              title="Average Grade"
+              value={stats.averageGrade > 0 ? stats.averageGrade : 'N/A'}
+              icon={
+                <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              }
+              bgColor="bg-purple-500"
+            />
           </div>
 
           {/* Continue Learning Section */}
@@ -396,41 +553,10 @@ const StudentDashboard = () => {
               ) : (
                 <div className="divide-y divide-gray-200">
                   {enrolledCourses.map((course) => (
-                    <div key={course._id} className="p-6">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <img 
-                            className="h-16 w-16 rounded object-cover"
-                            src={course.coverImage || "/default-course.jpg"} 
-                            alt={course.title} 
-                          />
-                        </div>
-                        <div className="ml-4 flex-1">
-                          <h4 className="text-lg font-medium text-gray-900">{course.title}</h4>
-                          <p className="text-sm text-gray-500">{course.instructor?.name || 'Unknown Instructor'}</p>
-                          
-                          <div className="mt-2">
-                            <div className="flex items-center">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2.5">
-                                <div 
-                                  className="bg-blue-600 h-2.5 rounded-full" 
-                                  style={{ width: `${course.progress || 0}%` }}
-                                ></div>
-                              </div>
-                              <span className="ml-2 text-sm text-gray-500">{course.progress || 0}% complete</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <Link
-                            to={`/courses/${course._id}`}
-                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            Continue
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+                    <CourseProgressCard 
+                      key={course._id}
+                      course={course}
+                    />
                   ))}
                 </div>
               )}
@@ -445,45 +571,25 @@ const StudentDashboard = () => {
               </h3>
             </div>
             <div className="bg-white">
-              {stats.assignmentsDue === 0 ? (
+              {upcomingAssignments.length === 0 ? (
                 <div className="p-6 text-center">
                   <p className="text-gray-500">You have no upcoming assignments.</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-gray-200">
-                  {/* This would normally come from the API */}
-                  <li className="p-4 hover:bg-gray-50">
-                    <div className="flex justify-between">
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-600">Module Quiz: Introduction to React</h4>
-                        <p className="text-xs text-gray-500">Web Development Fundamentals</p>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          Due in 2 days
-                        </span>
-                        <button className="ml-4 text-sm font-medium text-blue-600 hover:text-blue-500">
-                          Start
-                        </button>
-                      </div>
+                  {upcomingAssignments.slice(0, 5).map((assignment) => (
+                    <AssignmentItem
+                      key={assignment._id}
+                      assignment={assignment}
+                    />
+                  ))}
+                  {upcomingAssignments.length > 5 && (
+                    <div className="p-4 text-center">
+                      <Link to="/my-learning/assignments" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        View all {upcomingAssignments.length} assignments
+                      </Link>
                     </div>
-                  </li>
-                  <li className="p-4 hover:bg-gray-50">
-                    <div className="flex justify-between">
-                      <div>
-                        <h4 className="text-sm font-medium text-blue-600">Final Project: Data Analysis</h4>
-                        <p className="text-xs text-gray-500">Statistics for Data Science</p>
-                      </div>
-                      <div className="flex items-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Due in 7 days
-                        </span>
-                        <button className="ml-4 text-sm font-medium text-blue-600 hover:text-blue-500">
-                          Start
-                        </button>
-                      </div>
-                    </div>
-                  </li>
+                  )}
                 </ul>
               )}
             </div>
@@ -511,7 +617,7 @@ const StudentDashboard = () => {
                         />
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
                           <span className="text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded">
-                            {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
+                            {course.level && course.level.charAt(0).toUpperCase() + course.level.slice(1)}
                           </span>
                         </div>
                       </div>

@@ -99,6 +99,17 @@ export const completeContent = (courseId, moduleId, contentId) =>
 export const markVideoWatched = (courseId, moduleId, contentId) =>
   API.put(`/courses/${courseId}/modules/${moduleId}/content/${contentId}/watch`, {});
 
+// Get course progress for current user
+export const getCourseProgress = (courseId) => API.get(`/courses/${courseId}/progress`);
+
+// Mark content as completed
+export const markContentCompleted = (courseId, moduleIndex, contentId) => 
+  API.put(`/courses/${courseId}/modules/${moduleIndex}/content/${contentId}/complete`);
+
+// Reset content progress
+export const resetContentProgress = (courseId, moduleIndex, contentId) => 
+  API.put(`/courses/${courseId}/modules/${moduleIndex}/content/${contentId}/reset`);
+
 // Additional helper functions for User management
 export const getCurrentUser = () => getProfile();
 export const updateUserProfile = (userData) => updateProfile(userData);

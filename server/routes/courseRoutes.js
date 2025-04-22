@@ -359,4 +359,180 @@ router.post('/:id/rate', protect, async (req, res, next) => {
   }
 });
 
+// @route   GET /api/courses/:id/progress
+// @desc    Get course progress for the current user
+// @access  Private
+router.get('/:id/progress', protect, async (req, res, next) => {
+  try {
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Find the user's enrollment in this course
+    const enrollment = course.enrolledStudents.find(
+      student => student.student.toString() === req.user.id
+    );
+
+    if (!enrollment) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'You are not enrolled in this course'
+      });
+    }
+
+    // Get user's completed content
+    // Note: This assumes you've added a completedContent array to the enrollment schema
+    const completedContent = enrollment.completedContent || [];
+
+    res.json({
+      status: 'success',
+      courseId: course._id,
+      progress: enrollment.progress,
+      completedContent
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/courses/:id/modules/:moduleIndex/content/:contentId/complete
+// @desc    Mark a specific content item as completed
+// @access  Private
+router.put('/:id/modules/:moduleIndex/content/:contentId/complete', protect, async (req, res, next) => {
+  try {
+    const { id, moduleIndex, contentId } = req.params;
+    
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Find the user's enrollment in this course
+    const enrollmentIndex = course.enrolledStudents.findIndex(
+      student => student.student.toString() === req.user.id
+    );
+
+    if (enrollmentIndex === -1) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'You are not enrolled in this course'
+      });
+    }
+
+    // Verify module and content exist
+    if (!course.modules[moduleIndex] || !course.modules[moduleIndex].content.some(c => c._id.toString() === contentId)) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Module or content not found'
+      });
+    }
+
+    // Initialize completedContent array if it doesn't exist
+    if (!course.enrolledStudents[enrollmentIndex].completedContent) {
+      course.enrolledStudents[enrollmentIndex].completedContent = [];
+    }
+
+    // Check if content is already marked as completed
+    const completedContentIndex = course.enrolledStudents[enrollmentIndex].completedContent.findIndex(
+      c => c.contentId.toString() === contentId
+    );
+
+    // If not completed yet, add it
+    if (completedContentIndex === -1) {
+      course.enrolledStudents[enrollmentIndex].completedContent.push({
+        contentId,
+        moduleIndex: Number(moduleIndex),
+        completedAt: new Date()
+      });
+
+      // Recalculate progress percentage
+      const totalContentItems = course.modules.reduce(
+        (total, module) => total + module.content.length, 0
+      );
+      
+      const completedCount = course.enrolledStudents[enrollmentIndex].completedContent.length;
+      const progress = totalContentItems > 0 ? Math.round((completedCount / totalContentItems) * 100) : 0;
+      
+      course.enrolledStudents[enrollmentIndex].progress = progress;
+      
+      await course.save();
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Content marked as completed',
+      progress: course.enrolledStudents[enrollmentIndex].progress
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   PUT /api/courses/:id/modules/:moduleIndex/content/:contentId/reset
+// @desc    Reset a specific content item's completion status
+// @access  Private
+router.put('/:id/modules/:moduleIndex/content/:contentId/reset', protect, async (req, res, next) => {
+  try {
+    const { id, moduleIndex, contentId } = req.params;
+    
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Find the user's enrollment in this course
+    const enrollmentIndex = course.enrolledStudents.findIndex(
+      student => student.student.toString() === req.user.id
+    );
+
+    if (enrollmentIndex === -1) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'You are not enrolled in this course'
+      });
+    }
+
+    // Remove the content from the completedContent array
+    if (course.enrolledStudents[enrollmentIndex].completedContent) {
+      course.enrolledStudents[enrollmentIndex].completedContent = 
+        course.enrolledStudents[enrollmentIndex].completedContent.filter(
+          c => c.contentId.toString() !== contentId
+        );
+      
+      // Recalculate progress percentage
+      const totalContentItems = course.modules.reduce(
+        (total, module) => total + module.content.length, 0
+      );
+      
+      const completedCount = course.enrolledStudents[enrollmentIndex].completedContent.length;
+      const progress = totalContentItems > 0 ? Math.round((completedCount / totalContentItems) * 100) : 0;
+      
+      course.enrolledStudents[enrollmentIndex].progress = progress;
+      
+      await course.save();
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Content progress reset',
+      progress: course.enrolledStudents[enrollmentIndex].progress
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;

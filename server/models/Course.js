@@ -1,5 +1,8 @@
 // models/Course.js - Course model for EduBridge
 
+// Update to the Course.js model file
+// Add completedContent array to the enrolledStudents schema
+
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({
@@ -85,7 +88,20 @@ const courseSchema = new mongoose.Schema({
     progress: {
       type: Number,
       default: 0 // percentage
-    }
+    },
+    // Add the completedContent array to track completed lessons
+    completedContent: [{
+      contentId: {
+        type: mongoose.Schema.Types.ObjectId
+      },
+      moduleIndex: {
+        type: Number
+      },
+      completedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
   }],
   ratings: [{
     student: {

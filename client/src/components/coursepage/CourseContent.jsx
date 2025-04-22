@@ -1,19 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCourseProgress, markContentCompleted, resetContentProgress } from '../../services/api';
 
 const CourseContent = ({ course }) => {
   const [activeModuleIndex, setActiveModuleIndex] = useState(0);
+  const [completedContent, setCompletedContent] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // Load completed content from backend on component mount
+  useEffect(() => {
+    const fetchCompletedContent = async () => {
+      try {
+        // Only fetch if user is logged in
+        const token = localStorage.getItem('token');
+        if (!token || !course?._id) return;
+
+        const response = await getCourseProgress(course._id);
+        
+        // Transform the data into a map for easier lookup
+        const completedMap = {};
+        if (response.data && response.data.completedContent) {
+          response.data.completedContent.forEach(item => {
+            completedMap[item.contentId] = true;
+          });
+        }
+        
+        setCompletedContent(completedMap);
+      } catch (error) {
+        console.error('Error fetching completed content:', error);
+      }
+    };
+
+    fetchCompletedContent();
+  }, [course]);
 
   // Handle content click - redirect to the content URL in a new tab
-  const handleContentClick = (content, e) => {
+  const handleContentClick = async (content, moduleIndex, contentIndex, e) => {
     e.stopPropagation(); // Prevent toggling the module when clicking the content
     
     // Check if it's a valid URL
     if (content.url && (content.url.startsWith('http://') || content.url.startsWith('https://'))) {
       // Open content in a new tab
       window.open(content.url, '_blank');
+      
+      // Mark as completed if user is logged in and content is not already completed
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (token && user && content._id && !completedContent[content._id]) {
+        try {
+          setLoading(true);
+          
+          // Mark content as completed using the existing API
+          await markContentCompleted(course._id, moduleIndex, content._id);
+          
+          // Update local state
+          setCompletedContent(prev => ({
+            ...prev,
+            [content._id]: true
+          }));
+          
+          // Dispatch custom event to notify other components about the progress update
+          window.dispatchEvent(new CustomEvent('contentProgressUpdated', {
+            detail: {
+              courseId: course._id,
+              contentId: content._id,
+              moduleIndex,
+              contentIndex,
+              completed: true
+            }
+          }));
+        } catch (error) {
+          console.error('Error marking content as completed:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
     } else {
       // If URL is not valid, show an alert
       alert(`${content.type.charAt(0).toUpperCase() + content.type.slice(1)} URL is not available or invalid.`);
+    }
+  };
+
+  // Handle resetting a lesson's progress
+  const handleResetLesson = async (content, moduleIndex, e) => {
+    e.stopPropagation(); // Prevent any parent click events
+    
+    // Only proceed if the content is already completed
+    if (!completedContent[content._id]) return;
+    
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token && user && content._id) {
+      try {
+        setLoading(true);
+        
+        // Reset the content progress using the existing API
+        await resetContentProgress(course._id, moduleIndex, content._id);
+        
+        // Update local state
+        const updatedCompletedContent = { ...completedContent };
+        delete updatedCompletedContent[content._id];
+        setCompletedContent(updatedCompletedContent);
+        
+        // Dispatch custom event to notify other components about the progress update
+        window.dispatchEvent(new CustomEvent('contentProgressUpdated', {
+          detail: {
+            courseId: course._id,
+            contentId: content._id,
+            moduleIndex,
+            completed: false
+          }
+        }));
+      } catch (error) {
+        console.error('Error resetting lesson progress:', error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -59,10 +163,7 @@ const CourseContent = ({ course }) => {
                 <ul className="space-y-2">
                   {module.content?.map((content, contentIndex) => (
                     <li key={contentIndex} className="text-sm">
-                      <div 
-                        className="flex items-center p-2 rounded hover:bg-blue-50 cursor-pointer"
-                        onClick={(e) => handleContentClick(content, e)}
-                      >
+                      <div className="flex items-center p-2 rounded hover:bg-blue-50">
                         <div className="flex-shrink-0 mr-3">
                           {content.type === 'video' && (
                             <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -87,21 +188,48 @@ const CourseContent = ({ course }) => {
                           )}
                         </div>
                         <div className="ml-2 flex-1">
-                          <span className="font-medium text-blue-600">
-                            {content.title}
-                          </span>
+                          <div className="flex items-center">
+                            <span className={`font-medium ${completedContent[content._id] ? 'text-green-600' : 'text-blue-600'}`}>
+                              {content.title}
+                              {completedContent[content._id] && (
+                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  Completed
+                                </span>
+                              )}
+                            </span>
+                          </div>
                           {content.duration && (
-                            <span className="ml-2 text-xs text-gray-500">{content.duration} min</span>
+                            <span className="text-xs text-gray-500 mt-1 block">{content.duration} min</span>
                           )}
                           {content.description && (
                             <p className="text-xs text-gray-500 mt-1">{content.description}</p>
                           )}
                         </div>
-                        <div className="flex-shrink-0 ml-2">
-                          <svg className="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                          </svg>
+                        <div className="flex-shrink-0 ml-2 flex space-x-2">
+                          {completedContent[content._id] && (
+                            <button
+                              onClick={(e) => handleResetLesson(content, moduleIndex, e)}
+                              className="inline-flex items-center p-1 border border-transparent rounded text-gray-500 hover:bg-gray-100 focus:outline-none"
+                              title="Restart lesson"
+                              disabled={loading}
+                            >
+                              <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          )}
+                          
+                          <button
+                            onClick={(e) => handleContentClick(content, moduleIndex, contentIndex, e)}
+                            className="inline-flex items-center p-1 border border-transparent rounded text-blue-500 hover:bg-blue-100 focus:outline-none cursor-pointer"
+                            title="Open content"
+                            disabled={loading}
+                          >
+                            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                              <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </li>
