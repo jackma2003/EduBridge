@@ -123,6 +123,36 @@ const ExploreCourses = () => {
     });
   };
 
+  // Generate a background color based on the course title
+  const generateBgColor = (title) => {
+    const colors = [
+      'from-blue-500 to-indigo-700',
+      'from-purple-500 to-pink-600',
+      'from-green-500 to-teal-600',
+      'from-orange-400 to-red-600',
+      'from-cyan-500 to-blue-600'
+    ];
+    
+    // Simple hash function to pick a color consistently
+    let hash = 0;
+    for (let i = 0; i < title.length; i++) {
+      hash = title.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Get instructor initials for avatar
+  const getInitials = (name) => {
+    if (!name) return "IN";
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   // Render star rating based on course rating
   const renderStarRating = (rating) => {
     const ratingValue = parseFloat(rating) || 0;
@@ -338,15 +368,14 @@ const ExploreCourses = () => {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredCourses.map((course) => {
               const courseEnrolled = isEnrolled(course._id);
+              const bgGradient = generateBgColor(course.title);
+              const instructorInitials = getInitials(course.instructor?.name);
               
               return (
                 <div key={course._id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <div className="h-48 bg-gray-200 relative">
-                    <img 
-                      src={course.coverImage || "/default-course.jpg"} 
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="h-48 relative">
+                    {/* Gradient background instead of image */}
+                    <div className={`w-full h-full bg-gradient-to-br ${bgGradient}`}></div>
                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
@@ -355,15 +384,21 @@ const ExploreCourses = () => {
                   </div>
                   
                   <div className="p-5">
+                    <div className="flex items-center mb-3">
+                      {/* Initials-based avatar instead of profile picture */}
+                      <div className="h-8 w-8 rounded-full flex items-center justify-center text-white font-medium text-xs bg-gray-700 mr-2">
+                        {instructorInitials}
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {course.instructor?.name || 'Unknown Instructor'}
+                      </p>
+                    </div>
+                    
                     <h3 className="text-lg font-medium text-gray-900 mb-1 truncate hover:text-blue-600">
                       <Link to={`/courses/${course._id}`}>
                         {course.title}
                       </Link>
                     </h3>
-                    
-                    <p className="text-sm text-gray-500 mb-2">
-                      {course.instructor?.name || 'Unknown Instructor'}
-                    </p>
                     
                     <div className="text-sm text-gray-600 mb-3">
                       {renderStarRating(course.averageRating)}
