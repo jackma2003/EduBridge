@@ -24,36 +24,11 @@ const HeroSection = ({ handleGetStarted, handleExploreCourses }) => {
               anytime, on any device.
             </p>
             
-            {/* Course search bar */}
-            <div className="bg-white p-1 rounded-full flex mb-8 shadow-lg border border-gray-100">
-              <input
-                type="text"
-                placeholder="What do you want to learn today?"
-                className="flex-grow px-6 py-3 text-gray-700 focus:outline-none rounded-full"
-              />
-              <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full flex items-center hover:shadow-md transition-all">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                Search
-              </button>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
+            {/* CTA Buttons - Moved up to fill the space left by the search bar */}
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 mb-10">
               <button 
                 onClick={handleGetStarted}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 transition-all flex items-center justify-center group"
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-medium hover:shadow-lg hover:shadow-blue-200 transition-all flex items-center justify-center group"
               >
                 <span>Get Started</span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
@@ -62,14 +37,14 @@ const HeroSection = ({ handleGetStarted, handleExploreCourses }) => {
               </button>
               <button 
                 onClick={handleExploreCourses}
-                className="px-8 py-3 border-2 border-blue-600 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-all flex items-center justify-center"
+                className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-full font-medium hover:bg-blue-50 transition-all flex items-center justify-center"
               >
                 Explore Courses
               </button>
             </div>
             
             {/* Trust badges */}
-            <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0">
               <div className="flex items-center mr-8">
                 <div className="p-2 bg-blue-100 rounded-full mr-3">
                   <svg
