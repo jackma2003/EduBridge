@@ -37,15 +37,21 @@ const CourseContent = ({ course }) => {
     fetchCompletedContent();
   }, [course]);
 
-  // Check if user is logged in and enrolled
+  // Check if user is logged in and enrolled or is the course instructor
   const checkAccessPermission = () => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (!token) return false;
     
-    // Check if user is enrolled in this course
+    // Get user info
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user || !user.id) return false;
+    
+    // Check if the user is the instructor of the course
+    const isTeacher = user.role === 'teacher';
+    const isInstructor = isTeacher && (
+      user.id === (course.instructor?._id || course.instructor)
+    );
     
     // Check if the user is enrolled in this course
     const isEnrolled = course.enrolledStudents?.some(
@@ -53,7 +59,8 @@ const CourseContent = ({ course }) => {
                     (enrollment.student && enrollment.student._id === user.id)
     );
     
-    return isEnrolled;
+    // Grant access if user is either enrolled or the instructor
+    return isEnrolled || isInstructor;
   };
 
   // Handle content click - redirect to the content URL in a new tab
