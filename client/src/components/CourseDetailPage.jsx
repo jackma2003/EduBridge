@@ -22,6 +22,7 @@ const CourseDetailPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [user, setUser] = useState(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState('');
@@ -35,14 +36,25 @@ const CourseDetailPage = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUser(null);
+    setUserRole(null);
+    navigate('/');
+  };
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      setUserRole(user.role);
-      setUserId(user.id);
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      setUserRole(userData.role);
+      setUserId(userData.id);
+      setUser(userData);
     }
 
     // Fetch course details
@@ -231,7 +243,13 @@ const handleRatingSubmit = async (e) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <Navigation isLoggedIn={isLoggedIn} userRole={userRole} />
+      <Navigation 
+        isLoggedIn={isLoggedIn} 
+        userRole={userRole} 
+        user={user} 
+        handleLogout={handleLogout} 
+        courseId={id} // Pass the course ID from the URL params
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
