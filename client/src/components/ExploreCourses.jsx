@@ -27,6 +27,7 @@ const ExploreCourses = () => {
   const [enrolledCourseIds, setEnrolledCourseIds] = useState([]);
   const [showLoginNotice, setShowLoginNotice] = useState(false);
   const [user, setUser] = useState(null);
+  const [showTeacherNotice, setShowTeacherNotice] = useState(false);
 
   // Fetch courses on component mount
   useEffect(() => {
@@ -112,6 +113,11 @@ const ExploreCourses = () => {
     return enrolledCourseIds.includes(courseId);
   };
 
+  // Check if user is a teacher
+  const isTeacher = () => {
+    return user && user.role === 'teacher';
+  };
+
   // Handle filter changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +142,12 @@ const ExploreCourses = () => {
       if (!isLoggedIn) {
         // Show login notice instead of immediately redirecting
         setShowLoginNotice(true);
+        return;
+      }
+      
+      // If user is a teacher, show teacher notice and prevent enrollment
+      if (isTeacher()) {
+        setShowTeacherNotice(true);
         return;
       }
       
@@ -172,6 +184,11 @@ const ExploreCourses = () => {
     setShowLoginNotice(false);
   };
 
+  // Close teacher notice
+  const handleCloseTeacherNotice = () => {
+    setShowTeacherNotice(false);
+  };
+
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -194,6 +211,48 @@ const ExploreCourses = () => {
         handleCloseLoginNotice={handleCloseLoginNotice} 
       />
 
+      {/* Teacher Notice Modal */}
+      {showTeacherNotice && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity">
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg className="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Enrollment Restricted
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        As a teacher, you cannot enroll in courses. This feature is limited to student accounts.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={handleCloseTeacherNotice}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Understood
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Guest browsing notice */}
@@ -208,6 +267,24 @@ const ExploreCourses = () => {
               <div className="ml-3">
                 <p className="text-sm text-blue-700">
                   You're browsing as a guest. <Link to="/login" className="font-medium underline">Sign in</Link> or <Link to="/register" className="font-medium underline">create an account</Link> to enroll in courses.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Teacher notice */}
+        {isLoggedIn && isTeacher() && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-700">
+                  You're browsing as a teacher. Please note that teachers cannot enroll in courses. This feature is limited to student accounts.
                 </p>
               </div>
             </div>
@@ -278,6 +355,7 @@ const ExploreCourses = () => {
                 getInitials={getInitials}
                 generateBgColor={generateBgColor}
                 renderStarRating={renderStarRating}
+                isTeacher={isTeacher}
               />
             ))}
           </div>

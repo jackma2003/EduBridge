@@ -9,7 +9,8 @@ const CourseCard = ({
   navigate, 
   getInitials, 
   generateBgColor, 
-  renderStarRating 
+  renderStarRating,
+  isTeacher
 }) => {
   const courseEnrolled = isEnrolled(course._id);
   const bgGradient = generateBgColor(course.title);
@@ -66,6 +67,7 @@ const CourseCard = ({
         </p>
         
         <div className="mt-auto">
+          {/* Display different buttons based on user role and enrollment status */}
           {courseEnrolled ? (
             <button
               onClick={() => navigate(`/courses/${course._id}`)}
@@ -73,7 +75,16 @@ const CourseCard = ({
             >
               Continue Learning
             </button>
+          ) : isTeacher() ? (
+            // Teachers cannot enroll - show view details button only
+            <Link
+              to={`/courses/${course._id}`}
+              className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              View Course Details
+            </Link>
           ) : (
+            // Students can enroll
             <button
               onClick={() => handleEnroll(course._id)}
               disabled={enrollingCourseId === course._id}
@@ -97,12 +108,15 @@ const CourseCard = ({
             </button>
           )}
           
-          <Link
-            to={`/courses/${course._id}`}
-            className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            View Details
-          </Link>
+          {/* Show View Details button for non-teachers when not enrolled, or as a secondary option for teachers */}
+          {!courseEnrolled && !isTeacher() && (
+            <Link
+              to={`/courses/${course._id}`}
+              className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              View Details
+            </Link>
+          )}
         </div>
       </div>
     </div>

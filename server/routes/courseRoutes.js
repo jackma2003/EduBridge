@@ -193,10 +193,18 @@ router.delete('/:id', protect, async (req, res, next) => {
 });
 
 // @route   POST /api/courses/:id/enroll
-// @desc    Enroll in a course
+// @desc    Enroll in a course (students only)
 // @access  Private
 router.post('/:id/enroll', protect, async (req, res, next) => {
   try {
+    // Check if user is a student
+    if (req.user.role !== 'student') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only students can enroll in courses'
+      });
+    }
+
     const course = await Course.findById(req.params.id);
 
     if (!course) {
