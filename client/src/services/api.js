@@ -74,6 +74,9 @@ export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const unenrollCourse = (id) => API.post(`/courses/${id}/unenroll`);
 // Get all students enrolled in a specific course
 export const getCourseStudents = (courseId) => API.get(`/courses/${courseId}/students`);
+// Remove a student from a course (for instructor)
+export const removeStudentFromCourse = (courseId, studentId) => 
+  API.post(`/courses/${courseId}/remove-student`, { studentId });
 export const rateCourse = (id, ratingData) => {
   // Ensure the rating is a number between 1-5
   const validatedRating = {

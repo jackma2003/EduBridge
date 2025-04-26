@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const Course = require('../models/Course');
-const User = require('../models/User'); // Make sure to include User model
+const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/courses
@@ -529,6 +529,69 @@ router.put('/:id/modules/:moduleIndex/content/:contentId/reset', protect, async 
       status: 'success',
       message: 'Content progress reset',
       progress: course.enrolledStudents[enrollmentIndex].progress
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/courses/:id/remove-student
+// @desc    Allow an instructor to remove a student from their course
+// @access  Private (Course instructor/Admin only)
+router.post('/:id/remove-student', protect, async (req, res, next) => {
+  try {
+    const { studentId } = req.body;
+    
+    if (!studentId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Student ID is required'
+      });
+    }
+    
+    const course = await Course.findById(req.params.id);
+
+    if (!course) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Course not found'
+      });
+    }
+
+    // Check if user is course instructor or admin
+    if (course.instructor.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Not authorized to remove students from this course'
+      });
+    }
+
+    // Check if student is enrolled
+    const isEnrolled = course.enrolledStudents.some(
+      (student) => student.student.toString() === studentId
+    );
+
+    if (!isEnrolled) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Student is not enrolled in this course'
+      });
+    }
+
+    // Remove student from course enrolledStudents
+    course.enrolledStudents = course.enrolledStudents.filter(
+      (student) => student.student.toString() !== studentId
+    );
+    await course.save();
+
+    // Remove course from student's enrolledCourses
+    await User.findByIdAndUpdate(studentId, {
+      $pull: { enrolledCourses: course._id }
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Student successfully removed from course'
     });
   } catch (error) {
     next(error);
