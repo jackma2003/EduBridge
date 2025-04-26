@@ -36,7 +36,7 @@ const Navigation = ({ isLoggedIn, userRole, user, handleLogout, courseId }) => {
           
           <nav className="hidden md:flex items-center space-x-8">
             <Link to={courseId ? `/courses/${courseId}` : "/courses"} className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group border-blue-500 border-b-2 pb-1">
-              My Course
+              Course
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             {isLoggedIn ? (
@@ -51,12 +51,8 @@ const Navigation = ({ isLoggedIn, userRole, user, handleLogout, courseId }) => {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
-                  Login
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-                <Link to="/register" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
-                  Register
+                <Link to="/courses" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+                  Browse Courses
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               </>

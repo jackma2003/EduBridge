@@ -28,6 +28,14 @@ const Header = ({ isLoggedIn, showRoleSelector, toggleRoleSelector, handleLogin,
     window.location.href = '/'; // Force a full page reload to clear any state
   };
   
+  // Handle smooth scrolling to sections
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+  
   return (
     <header className="bg-white backdrop-blur-md bg-opacity-90 sticky top-0 z-50 border-b border-gray-100">
       <div className="container mx-auto px-4 py-4">
@@ -47,18 +55,27 @@ const Header = ({ isLoggedIn, showRoleSelector, toggleRoleSelector, handleLogin,
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features-section" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+            <button 
+              onClick={() => scrollToSection('features-section')}
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group bg-transparent border-none cursor-pointer"
+            >
               Features
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+            </button>
+            <button 
+              onClick={() => scrollToSection('how-it-works')}
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group bg-transparent border-none cursor-pointer"
+            >
               How It Works
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-            </a>
-            <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+            </button>
+            <button 
+              onClick={() => scrollToSection('testimonials')}
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group bg-transparent border-none cursor-pointer"
+            >
               Testimonials
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-            </a>
+            </button>
             <a href="/courses" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
               Courses
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>

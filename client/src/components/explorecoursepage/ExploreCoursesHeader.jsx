@@ -47,12 +47,8 @@ const ExploreCoursesHeader = ({ isLoggedIn, user, handleLogout }) => {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
-                  Login
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
-                <Link to="/register" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
-                  Register
+                <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group">
+                  Home Page
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               </>
