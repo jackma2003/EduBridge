@@ -181,13 +181,21 @@ router.delete('/:id', protect, async (req, res, next) => {
       });
     }
 
-    await course.remove();
+    // First, update any user documents to remove references to this course
+    await User.updateMany(
+      { enrolledCourses: course._id },
+      { $pull: { enrolledCourses: course._id } }
+    );
+
+    // Use proper deleteOne method instead of deprecated remove()
+    await Course.deleteOne({ _id: course._id });
 
     res.json({
       status: 'success',
-      message: 'Course removed'
+      message: 'Course removed successfully'
     });
   } catch (error) {
+    console.error('Course deletion error:', error);
     next(error);
   }
 });

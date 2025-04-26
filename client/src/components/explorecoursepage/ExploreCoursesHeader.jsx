@@ -35,7 +35,7 @@ const ExploreCoursesHeader = ({ isLoggedIn, user, handleLogout }) => {
           
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/courses" className="text-gray-700 hover:text-blue-600 transition-colors font-medium relative group border-blue-500 border-b-2 pb-1">
-              Courses
+              Browse Courses
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
             {isLoggedIn ? (

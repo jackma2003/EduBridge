@@ -69,7 +69,20 @@ export const getCourses = () => API.get('/courses');
 export const getCourse = (id) => API.get(`/courses/${id}`);
 export const createCourse = (courseData) => API.post('/courses', courseData);
 export const updateCourse = (id, courseData) => API.put(`/courses/${id}`, courseData);
-export const deleteCourse = (id) => API.delete(`/courses/${id}`);
+export const deleteCourse = async (id) => {
+  try {
+    const response = await API.delete(`/courses/${id}`);
+    return response;
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    
+    // Extract the error message from the response if possible
+    const errorMessage = error.response?.data?.message || 'An error occurred while deleting the course';
+    
+    // Rethrow a more informative error
+    throw new Error(errorMessage);
+  }
+};
 export const enrollCourse = (id) => API.post(`/courses/${id}/enroll`);
 export const unenrollCourse = (id) => API.post(`/courses/${id}/unenroll`);
 // Get all students enrolled in a specific course
