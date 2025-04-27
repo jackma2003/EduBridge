@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, deleteUser } from '../../services/api';
 import UserEditModal from './UserEditModal';
+import UserDeleteConfirmationModal from './UserDeleteConfirmationModal';
 import LoadingSpinner from './LoadingSpinner';
 
 const UserManagement = ({ loading, setLoading, setError }) => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(null);
   
   useEffect(() => {
     fetchUsers();
@@ -34,20 +36,8 @@ const UserManagement = ({ loading, setLoading, setError }) => {
     user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      try {
-        setLoading(true);
-        await deleteUser(userId);
-        setError('');
-        // After successful deletion, refresh the user list
-        fetchUsers();
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete user');
-        console.error(err);
-        setLoading(false);
-      }
-    }
+  const handleDeleteUser = (user) => {
+    setDeletingUser(user);
   };
 
   const handleEditUser = (user) => {
@@ -57,6 +47,11 @@ const UserManagement = ({ loading, setLoading, setError }) => {
   const handleEditComplete = () => {
     setEditingUser(null);
     fetchUsers(); // Refresh user list after editing
+  };
+  
+  const handleDeleteComplete = () => {
+    setDeletingUser(null);
+    fetchUsers(); // Refresh user list after deletion
   };
 
   return (
@@ -154,7 +149,7 @@ const UserManagement = ({ loading, setLoading, setError }) => {
                         </button>
                         {user.role !== 'admin' && (
                           <button 
-                            onClick={() => handleDeleteUser(user._id)}
+                            onClick={() => handleDeleteUser(user)}
                             className="text-red-600 hover:text-red-900 flex items-center"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,6 +174,17 @@ const UserManagement = ({ loading, setLoading, setError }) => {
           user={editingUser} 
           onClose={() => setEditingUser(null)} 
           onEditComplete={handleEditComplete}
+          setError={setError}
+          setLoading={setLoading}
+        />
+      )}
+
+      {/* User Delete Modal */}
+      {deletingUser && (
+        <UserDeleteConfirmationModal 
+          user={deletingUser} 
+          onClose={() => setDeletingUser(null)} 
+          onDeleteComplete={handleDeleteComplete}
           setError={setError}
           setLoading={setLoading}
         />
