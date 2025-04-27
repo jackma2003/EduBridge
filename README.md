@@ -56,7 +56,6 @@ EduBridge is a modern learning management system designed to connect educators a
 
 - **Responsive Design**: Fully functional across desktop, tablet, and mobile devices
 - **Intuitive Navigation**: User-friendly interface with clear pathways
-- **Personalization Options**: Dark/light theme toggle and language preferences
 - **Component-Based Architecture**: Modular UI components for each section of the application
 
 ## 🛠️ Core System Components
